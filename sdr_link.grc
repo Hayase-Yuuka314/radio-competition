@@ -553,3 +553,7 @@ connections:
   - [tx_source, '0', throttle, '0']
   - [throttle, '0', channel_model, '0']
   - [channel_model, '0', rx_sink, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
