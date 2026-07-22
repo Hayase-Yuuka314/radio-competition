@@ -3,12 +3,12 @@ options:
     author: ''
     catch_exceptions: 'True'
     category: '[Custom]'
-    comment: 'RX Plutosdr:PlutoSDR接收→匹配滤波→前导检测→BPSK解调→CRC→写文件'
+    comment: 'RX Plutosdr:接收→归一化→匹配滤波→前导检测→BPSK解调→CRC→写文件'
     description: ''
     gen_cmake: 'On'
     gen_linking: dynamic
     generate_options: no_gui
-    id: sdr_rx_pluto
+    id: sdr_rx_pluto_v2
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -29,17 +29,17 @@ blocks:
 
 - name: samp_rate
   id: variable
-  parameters: {comment: 'IQ采样率(必须和TX一致)', value: '2000000'}
+  parameters: {comment: 'IQ采样率(必须=TX)', value: '2000000'}
   states: {coordinate: [16, 16], rotation: 0, state: enabled}
 
 - name: sps
   id: variable
-  parameters: {comment: '每符号采样数(必须和TX一致)', value: '8'}
+  parameters: {comment: '每符号采样数(必须=TX)', value: '8'}
   states: {coordinate: [160, 16], rotation: 0, state: enabled}
 
 - name: alpha
   id: variable
-  parameters: {comment: 'RRC滚降系数(必须和TX一致)', value: '0.35'}
+  parameters: {comment: 'RRC滚降系数(必须=TX)', value: '0.35'}
   states: {coordinate: [288, 16], rotation: 0, state: enabled}
 
 - name: span
@@ -49,7 +49,7 @@ blocks:
 
 - name: preamble_len
   id: variable
-  parameters: {comment: '前导符号数(必须和TX一致)', value: '64'}
+  parameters: {comment: '前导符号数(必须=TX)', value: '64'}
   states: {coordinate: [544, 16], rotation: 0, state: enabled}
 
 - name: guard_len
@@ -59,7 +59,7 @@ blocks:
 
 - name: seed
   id: variable
-  parameters: {comment: '随机种子(必须和TX一致)', value: '42'}
+  parameters: {comment: '随机种子(必须=TX)', value: '42'}
   states: {coordinate: [16, 96], rotation: 0, state: enabled}
 
 - name: output_file
@@ -74,12 +74,12 @@ blocks:
 
 - name: center_freq
   id: variable
-  parameters: {comment: '中心频率 Hz(必须和TX一致)', value: '2450000000'}
+  parameters: {comment: '中心频率 Hz (必须和TX完全一样!)', value: '2450000000'}
   states: {coordinate: [240, 256], rotation: 0, state: enabled}
 
 - name: rx_gain
   id: variable
-  parameters: {comment: 'RX增益 dB (1~76, manual模式)', value: '40.0'}
+  parameters: {comment: 'RX增益 dB (近距离先试20，太高会饱和)', value: '20.0'}
   states: {coordinate: [464, 256], rotation: 0, state: enabled}
 
 - name: rf_bandwidth
@@ -89,7 +89,7 @@ blocks:
 
 - name: rx_duration
   id: variable
-  parameters: {comment: 'RX最长接收时间 秒 (比TX循环总时长稍长即可)', value: '30.0'}
+  parameters: {comment: 'RX最长接收时间 秒', value: '30.0'}
   states: {coordinate: [16, 336], rotation: 0, state: enabled}
 
 - name: rx_buffer_size
@@ -102,6 +102,11 @@ blocks:
   parameters: {comment: '滑动窗口大小(样本数)', value: '10000000'}
   states: {coordinate: [512, 336], rotation: 0, state: enabled}
 
+- name: detection_threshold
+  id: variable
+  parameters: {comment: '前导检测门限(越低调越灵敏)', value: '0.25'}
+  states: {coordinate: [736, 336], rotation: 0, state: enabled}
+
 - name: pluto_rx_source
   id: epy_block
   parameters:
@@ -110,13 +115,10 @@ blocks:
       from gnuradio import gr
 
       class blk(gr.sync_block):
-          """PlutoSDR RX: 从PlutoSDR接收IQ流"""
-
-          def __init__(self, device_uri="ip:192.168.2.1",
-                       samp_rate=2000000, center_freq=2450000000,
-                       rf_bandwidth=1000000, rx_gain=40.0,
-                       rx_duration=5.0, rx_buffer_size=32768,
-                       max_capture=4000000):
+          def __init__(self, device_uri="ip:192.168.2.1", samp_rate=2000000,
+                       center_freq=2450000000, rf_bandwidth=1000000,
+                       rx_gain=20.0, rx_duration=30.0, rx_buffer_size=32768,
+                       max_capture=10000000):
               gr.sync_block.__init__(self, name="Pluto RX Source",
                                      in_sig=None, out_sig=[np.complex64])
               self.device_uri = str(device_uri)
@@ -142,9 +144,11 @@ blocks:
               self._sdr.rx_buffer_size = self.rx_buffer_size
               self._remaining = min(
                   int(self.rx_duration * self.samp_rate), self.max_capture)
-              print(f"[RX Pluto] uri={self.device_uri} freq={self.center_freq} "
-                    f"rate={self.samp_rate} gain={self.rx_gain}dB "
-                    f"max_samples={self._remaining}")
+              print(f"[RX Pluto] uri={self.device_uri}")
+              print(f"[RX Pluto] freq={self.center_freq/1e6:.3f}MHz "
+                    f"rate={self.samp_rate/1e6:.1f}MHz gain={self.rx_gain}dB")
+              print(f"[RX Pluto] listening for {self.rx_duration}s "
+                    f"(max {self._remaining} samples)")
               return True
 
           def work(self, input_items, output_items):
@@ -164,8 +168,7 @@ blocks:
 
           def stop(self):
               self._sdr = None
-              self._pending = np.empty(0, dtype=np.complex64)
-              print("[RX Pluto] device released")
+              print("[RX Pluto] released")
               return True
     affinity: ''
     alias: ''
@@ -191,12 +194,10 @@ blocks:
       from gnuradio import gr
 
       class blk(gr.sync_block):
-          """RX: 缓存IQ→前导互相关→符号定时→BPSK解调→CRC→写文件"""
-
-          def __init__(self, output_path="decoded_output.txt",
-                       sps=8, alpha=0.35, span=6,
-                       preamble_len=64, guard_len=16, seed=42,
-                       max_capture=4000000):
+          def __init__(self, output_path="decoded_output.txt", sps=8,
+                       alpha=0.35, span=6, preamble_len=64, guard_len=16,
+                       seed=42, max_capture=10000000,
+                       detection_threshold=0.25):
               gr.sync_block.__init__(self, name="RX Sink",
                                      in_sig=[np.complex64], out_sig=None)
               self.output_path = str(output_path)
@@ -204,6 +205,7 @@ blocks:
               self.span = int(span); self.preamble_len = int(preamble_len)
               self.guard_len = int(guard_len); self.seed = int(seed)
               self.max_capture = int(max_capture)
+              self.detection_threshold = float(detection_threshold)
               self.sync_word = 0x1ACF
               self._buffer = np.empty(0, dtype=np.complex64)
               self._decoded = False
@@ -221,8 +223,9 @@ blocks:
               h[idx0] = 1.0 - a + 4.0 * a / np.pi
               tsp = 1.0 / (4.0 * a)
               for idx in np.where(np.abs(np.abs(t) - tsp) < 1e-6)[0]:
-                  h[idx] = (a / np.sqrt(2.0)) * ((1.0 + 2.0 / np.pi) * np.sin(np.pi / (4.0 * a))
-                                                  + (1.0 - 2.0 / np.pi) * np.cos(np.pi / (4.0 * a)))
+                  h[idx] = (a / np.sqrt(2.0)) * (
+                      (1.0 + 2.0 / np.pi) * np.sin(np.pi / (4.0 * a))
+                      + (1.0 - 2.0 / np.pi) * np.cos(np.pi / (4.0 * a)))
               e = np.sum(np.abs(h) ** 2)
               if e > 0: h /= np.sqrt(e)
               return np.float64(h)
@@ -250,6 +253,14 @@ blocks:
               if len(m) > 2 * delay: m = m[delay:-delay]
               return m
 
+          def _normalize(self, data):
+              """去除DC偏移 + 幅度归一化到[-1,1]"""
+              data = data - np.mean(data)  # 去DC
+              peak = np.max(np.abs(data))
+              if peak > 1e-12:
+                  data = data / peak        # 峰值归一化
+              return data
+
           def _corr(self, rx, psyms):
               p = self._shape(psyms, self.sps, self.alpha, self.span)
               L = len(p)
@@ -261,14 +272,16 @@ blocks:
               denom = np.sqrt(wp * pe)
               c = np.zeros(len(rx), dtype=np.float64)
               vn = len(raw); st = L - 1
-              c[st:st + vn] = np.divide(raw, denom, out=np.zeros(vn, dtype=np.float64), where=denom > 1e-12)
+              c[st:st + vn] = np.divide(raw, denom,
+                  out=np.zeros(vn, dtype=np.float64), where=denom > 1e-12)
               return c, L
 
           def _find_frames(self, cs, plen):
               pm = float(np.max(cs))
-              if pm < 0.40: return []
-              thr = max(0.40, 0.70 * pm); L = plen
-              starts = []; i = 0
+              if pm < self.detection_threshold:
+                  return []
+              thr = max(self.detection_threshold, 0.70 * pm)
+              L = plen; starts = []; i = 0
               while i < len(cs):
                   if cs[i] < thr: i += 1; continue
                   j, pk = i, i
@@ -277,7 +290,8 @@ blocks:
                       if cs[j] > cs[pk]: pk = j
                       j += 1
                   fs = max(0, (pk - L + 1) - self.guard_len * self.sps)
-                  if not starts or fs - starts[-1] > L: starts.append(fs)
+                  if not starts or fs - starts[-1] > L:
+                      starts.append(fs)
                   i = max(j, pk + L // 2)
               return starts
 
@@ -324,43 +338,62 @@ blocks:
           def work(self, input_items, output_items):
               if self._decoded: return 0
               x = np.asarray(input_items[0], dtype=np.complex64)
-              # slide window: always keep most recent max_capture samples
               self._buffer = np.concatenate((self._buffer, x))
               if len(self._buffer) > self.max_capture:
                   self._buffer = self._buffer[-self.max_capture:]
               self._total_samples += len(x)
-              # print buffer status every ~2.5s
               if self._total_samples % (self.max_capture // 4) < len(x):
                   pwr = 10 * np.log10(np.mean(np.abs(x) ** 2) + 1e-20)
-                  peak = 20 * np.log10(np.max(np.abs(x)) + 1e-20)
-                  print(f"[RX] buffer={len(self._buffer)} total={self._total_samples} "
-                        f"avgPwr={pwr:.1f}dBFS peakPwr={peak:.1f}dBFS")
+                  print(f"[RX] buf={len(self._buffer)} total={self._total_samples} "
+                        f"avgPwr={pwr:.1f}dB")
               return len(x)
 
           def stop(self):
               if self._decoded: return True
+              # ── 归一化 ──
+              raw_mean = np.mean(self._buffer)
+              raw_peak = np.max(np.abs(self._buffer))
+              print(f"[RX] raw: mean={raw_mean:.3f} peak={raw_peak:.3f} "
+                    f"samples={len(self._buffer)}")
+              self._buffer = self._normalize(self._buffer)
+              # ── 前导 ──
               rng = np.random.default_rng(self.seed)
               pb = (rng.random(self.preamble_len) > 0.5).astype(np.uint8)
               ps = self._bpsk_mod(pb)
-              sb = np.unpackbits(np.array([self.sync_word], dtype=">u2").view(np.uint8))
+              sb = np.unpackbits(
+                  np.array([self.sync_word], dtype=">u2").view(np.uint8))
               corr, plen = self._corr(self._buffer, ps)
+              cpeak = float(np.max(corr))
+              print(f"[RX] corr_peak={cpeak:.3f} threshold={self.detection_threshold}")
+              if cpeak < self.detection_threshold:
+                  print("[RX] no preamble found - check:")
+                  print("     1. TX freq == RX freq?")
+                  print("     2. TX is running and looping?")
+                  print("     3. Antennas connected?")
+                  print("     4. Try lowering detection_threshold or gain")
               starts = self._find_frames(corr, plen)
-              print(f"[RX] buffer={len(self._buffer)} corr_peak={float(np.max(corr)):.3f} frames={len(starts)}")
+              print(f"[RX] frames detected: {len(starts)}")
               ad = bytearray()
               for s in starts:
                   r = self._decode(self._buffer, s, ps, sb)
-                  if r: ad.extend(r); print(f"[RX] frame at {s}: {len(r)}B OK")
+                  if r:
+                      ad.extend(r)
+                      print(f"[RX] frame at {s}: {len(r)}B OK "
+                            f"SHA256={hashlib.sha256(r).hexdigest()[:12]}...")
+                  else:
+                      print(f"[RX] frame at {s}: decode FAILED")
               rec = bytes(ad)
               tgt = Path(self.output_path)
               tgt.parent.mkdir(parents=True, exist_ok=True)
               tmp = tgt.with_suffix(tgt.suffix + ".tmp")
               tmp.write_bytes(rec); os.replace(tmp, tgt)
-              print(f"[RX] wrote {len(rec)}B -> {tgt} SHA256={hashlib.sha256(rec).hexdigest()[:16]}...")
+              print(f"[RX] wrote {len(rec)}B -> {tgt}")
               self._decoded = True
               return True
     affinity: ''
     alias: ''
     alpha: alpha
+    detection_threshold: detection_threshold
     guard_len: guard_len
     max_capture: max_capture
     maxoutbuf: '0'
