@@ -1,0 +1,628 @@
+options:
+  parameters:
+    author: Competition Team
+    catch_exceptions: 'True'
+    category: '[SDR Contest]'
+    cmake_opt: ''
+    comment: 独立接收端。不含仿真信道；保留完整协议解码、原始 IQ 和指标输出。
+    copyright: '2026'
+    description: 原生 PlutoSDR Source -> 有限 IQ 采集 -> 同步/FEC/CRC/去重重组 + IQ 文件
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: sdr_contest_rx_pluto
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: SDR Contest PlutoSDR Receiver
+    window_size: (1450,900)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: device_uri
+  id: variable
+  parameters:
+    comment: 必须改为已验证的 Pluto/NanoSDR URI
+    value: '''ip:192.168.2.1'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 16
+    - 12
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: 复基带采样率，须与 TX 一致
+    value: '2000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 224
+    - 12
+    rotation: 0
+    state: enabled
+- name: center_frequency_hz
+  id: variable
+  parameters:
+    comment: 接收中心频率
+    value: '2400000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 352
+    - 12
+    rotation: 0
+    state: enabled
+- name: rf_bandwidth_hz
+  id: variable
+  parameters:
+    comment: Pluto RX RF 带宽
+    value: '1000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 536
+    - 12
+    rotation: 0
+    state: enabled
+- name: rf_buffer_samples
+  id: variable
+  parameters:
+    comment: Pluto RX 缓冲区样本数
+    value: '32768'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 688
+    - 12
+    rotation: 0
+    state: enabled
+- name: rf_duration_s
+  id: variable
+  parameters:
+    comment: 有限采集时长
+    value: '5.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 856
+    - 12
+    rotation: 0
+    state: enabled
+- name: max_capture_samples
+  id: variable
+  parameters:
+    comment: 接收样本硬上限
+    value: '10000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 984
+    - 12
+    rotation: 0
+    state: enabled
+- name: capture_samples
+  id: variable
+  parameters:
+    comment: 本次实际请求样本数
+    value: min(int(rf_duration_s*samp_rate), max_capture_samples)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1136
+    - 12
+    rotation: 0
+    state: enabled
+- name: rx_gain_mode
+  id: variable
+  parameters:
+    comment: manual | slow_attack | fast_attack | hybrid
+    value: '''manual'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 16
+    - 104
+    rotation: 0
+    state: enabled
+- name: rx_gain_db
+  id: variable
+  parameters:
+    comment: 手动 RX 增益
+    value: '30.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 176
+    - 104
+    rotation: 0
+    state: enabled
+- name: iq_capture_path
+  id: variable
+  parameters:
+    comment: 原始 complex64 IQ 文件
+    value: '''rx_capture.c64'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 304
+    - 104
+    rotation: 0
+    state: enabled
+- name: output_path
+  id: variable
+  parameters:
+    comment: CRC 验证且完整重组后的输出
+    value: '''decoded_payload.bin'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 496
+    - 104
+    rotation: 0
+    state: enabled
+- name: metrics_path
+  id: variable
+  parameters:
+    comment: 同步/FEC/CRC/缺块分类指标
+    value: '''run_metrics.json'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 704
+    - 104
+    rotation: 0
+    state: enabled
+- name: input_reference_path
+  id: variable
+  parameters:
+    comment: 仅离线评分参考，真实 RX 不读取
+    value: '''input_payload.bin'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 896
+    - 104
+    rotation: 0
+    state: enabled
+- name: modulation
+  id: variable
+  parameters:
+    comment: 须与 TX 一致
+    value: '''bpsk'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 16
+    - 196
+    rotation: 0
+    state: enabled
+- name: fec_mode
+  id: variable
+  parameters:
+    comment: 须与 TX 一致
+    value: '''convolutional'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 144
+    - 196
+    rotation: 0
+    state: enabled
+- name: samples_per_symbol
+  id: variable
+  parameters:
+    comment: 须与 TX 一致
+    value: '8'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 312
+    - 196
+    rotation: 0
+    state: enabled
+- name: rrc_rolloff
+  id: variable
+  parameters:
+    comment: 须与 TX 一致
+    value: '0.35'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 472
+    - 196
+    rotation: 0
+    state: enabled
+- name: rrc_span
+  id: variable
+  parameters:
+    comment: 须与 TX 一致
+    value: '6'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 600
+    - 196
+    rotation: 0
+    state: enabled
+- name: preamble_symbols
+  id: variable
+  parameters:
+    comment: 协议 v1 固定值
+    value: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 712
+    - 196
+    rotation: 0
+    state: enabled
+- name: guard_symbols
+  id: variable
+  parameters:
+    comment: 须与 TX 一致
+    value: '16'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 872
+    - 196
+    rotation: 0
+    state: enabled
+- name: detection_threshold
+  id: variable
+  parameters:
+    comment: 归一化前导相关门限
+    value: '0.45'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1016
+    - 196
+    rotation: 0
+    state: enabled
+- name: seed
+  id: variable
+  parameters:
+    comment: 协议确定性种子
+    value: '42'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1192
+    - 196
+    rotation: 0
+    state: enabled
+- name: pluto_rx_source
+  id: iio_pluto_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: GNU Radio gr-iio 原生 PlutoSDR Source。
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    bandwidth: rf_bandwidth_hz
+    bbdc: 'True'
+    buffer_size: rf_buffer_samples
+    filter: ''''''
+    filter_source: '''Auto'''
+    fpass: '0'
+    frequency: center_frequency_hz
+    fstop: '0'
+    gain1: rx_gain_mode
+    len_tag_key: ''''''
+    manual_gain1: rx_gain_db
+    quadrature: 'True'
+    rfdc: 'True'
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 24
+    - 484
+    rotation: 0
+    state: enabled
+- name: rx_finite_head
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: 到达时长或样本硬上限后自动结束。
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: capture_samples
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 336
+    - 484
+    rotation: 0
+    state: enabled
+- name: contest_rx_sink
+  id: epy_block
+  parameters:
+    _source_code: "import hashlib\nimport json\nimport os\nfrom pathlib import Path\n\nimport numpy as\
+      \ np\nimport pmt\nfrom gnuradio import gr\n\n\nclass blk(gr.sync_block):\n    \"\"\"Tagged fast-path\
+      \ plus correlation fallback receiver and safe reassembler.\"\"\"\n\n    def __init__(self, role=\"\
+      sim\", output_path=\"decoded_payload.bin\",\n                 metrics_path=\"run_metrics.json\"\
+      , input_path=\"input_payload.bin\",\n                 modulation=\"bpsk\", fec_mode=\"convolutional\"\
+      ,\n                 samp_rate=2000000, samples_per_symbol=8, rolloff=0.35,\n                 span=6,\
+      \ preamble_symbols=64, guard_symbols=16,\n                 detection_threshold=0.45, max_capture_samples=10000000,\n\
+      \                 use_frame_tags=True, seed=42):\n        gr.sync_block.__init__(\n            self,\
+      \ name=\"Contest RX: sync/demod/FEC/CRC/reassembly\",\n            in_sig=[np.complex64], out_sig=None)\n\
+      \        self.role = str(role)\n        self.output_path = str(output_path)\n        self.metrics_path\
+      \ = str(metrics_path)\n        self.input_path = str(input_path)\n        self.modulation = str(modulation).lower()\n\
+      \        self.fec_mode = str(fec_mode).lower()\n        self.samp_rate = float(samp_rate)\n    \
+      \    self.samples_per_symbol = int(samples_per_symbol)\n        self.rolloff = float(rolloff)\n\
+      \        self.span = int(span)\n        self.preamble_symbols = int(preamble_symbols)\n        self.guard_symbols\
+      \ = int(guard_symbols)\n        self.detection_threshold = float(detection_threshold)\n        self.max_capture_samples\
+      \ = int(max_capture_samples)\n        self.use_frame_tags = bool(use_frame_tags)\n        self.seed\
+      \ = int(seed)\n        self._buffer = np.empty(0, dtype=np.complex64)\n        self._base_abs =\
+      \ 0\n        self._pending_tags = []\n        self._blocks = {}\n        self._total_blocks = None\n\
+      \        self._file_id = None\n        self._rx = None\n        self._metrics = {}\n\n    def start(self):\n\
+      \        if self.preamble_symbols != 64:\n            raise ValueError(\"protocol v1 requires preamble_symbols=64\"\
+      )\n        if self.guard_symbols < 1:\n            raise ValueError(\"guard_symbols must be positive\"\
+      )\n        from wireless_competition.common.types import FECType, ModulationType, RxProfile\n  \
+      \      from wireless_competition.rx.sim_receiver import SimulationReceiver\n        mod_map = {\"\
+      bpsk\": ModulationType.BPSK, \"qpsk\": ModulationType.QPSK}\n        fec_map = {\"none\": FECType.NONE,\
+      \ \"convolutional\": FECType.CONVOLUTIONAL}\n        if self.modulation not in mod_map or self.fec_mode\
+      \ not in fec_map:\n            raise ValueError(\"unsupported modulation/FEC profile\")\n      \
+      \  profile = RxProfile(\n            modulation=mod_map[self.modulation], fec_type=fec_map[self.fec_mode],\n\
+      \            samples_per_symbol=self.samples_per_symbol,\n            rrc_rolloff=self.rolloff,\
+      \ rrc_span=self.span,\n            frame_detection_threshold=self.detection_threshold)\n       \
+      \ self._rx = SimulationReceiver(profile=profile, seed=self.seed)\n        self._buffer = np.empty(0,\
+      \ dtype=np.complex64)\n        self._base_abs = 0\n        self._pending_tags = []\n        self._blocks\
+      \ = {}\n        self._total_blocks = None\n        self._file_id = None\n        self._metrics =\
+      \ {\n            \"role\": self.role, \"frames_attempted\": 0, \"frames_detected\": 0,\n       \
+      \     \"header_failures\": 0, \"payload_crc_failures\": 0,\n            \"accepted_unique_frames\"\
+      : 0, \"duplicate_frames\": 0,\n            \"unique_payload_bytes\": 0, \"correlation_fallback_used\"\
+      : False,\n            \"capture_truncated\": False}\n        return True\n\n    def _decode_frame(self,\
+      \ frame):\n        from wireless_competition.common.types import FailureReason\n        self._metrics[\"\
+      frames_attempted\"] += 1\n        result = self._rx.process_frame(\n            np.asarray(frame,\
+      \ dtype=np.complex128), self.samp_rate,\n            guard_symbols=self.guard_symbols)\n       \
+      \ if result.frame_detected:\n            self._metrics[\"frames_detected\"] += 1\n        reason\
+      \ = getattr(result.failure_reason, \"value\", str(result.failure_reason))\n        if not result.payload_crc_pass\
+      \ or result.metadata is None:\n            if \"header\" in str(reason).lower():\n             \
+      \   self._metrics[\"header_failures\"] += 1\n            else:\n                self._metrics[\"\
+      payload_crc_failures\"] += 1\n            return\n        meta = result.metadata\n        seq =\
+      \ int(meta.block_sequence)\n        if seq in self._blocks:\n            self._metrics[\"duplicate_frames\"\
+      ] += 1\n            return\n        self._blocks[seq] = bytes(result.payload_bytes)\n        self._total_blocks\
+      \ = int(meta.total_blocks)\n        self._file_id = int(meta.file_id)\n        self._metrics[\"\
+      accepted_unique_frames\"] += 1\n        self._metrics[\"unique_payload_bytes\"] += len(result.payload_bytes)\n\
+      \n    def _drain_tagged(self):\n        self._pending_tags.sort(key=lambda item: item[0])\n    \
+      \    while self._pending_tags:\n            offset, length = self._pending_tags[0]\n           \
+      \ start = int(offset - self._base_abs)\n            if start < 0:\n                self._pending_tags.pop(0)\n\
+      \                continue\n            end = start + int(length)\n            if end > len(self._buffer):\n\
+      \                break\n            frame = self._buffer[start:end].copy()\n            self._decode_frame(frame)\n\
+      \            self._buffer = self._buffer[end:]\n            self._base_abs += end\n            self._pending_tags.pop(0)\n\
+      \n    def work(self, input_items, output_items):\n        x = np.asarray(input_items[0], dtype=np.complex64)\n\
+      \        n = len(x)\n        absolute = int(self.nitems_read(0))\n        tags = (self.get_tags_in_window(0,\
+      \ 0, n, pmt.intern(\"frame_len\"))\n                if self.use_frame_tags else [])\n        for\
+      \ tag in tags:\n            self._pending_tags.append((int(tag.offset), int(pmt.to_long(tag.value))))\n\
+      \        if n:\n            room = self.max_capture_samples - len(self._buffer)\n            if\
+      \ room <= 0:\n                self._metrics[\"capture_truncated\"] = True\n            else:\n \
+      \               take = min(n, room)\n                self._buffer = np.concatenate((self._buffer,\
+      \ x[:take]))\n                if take < n:\n                    self._metrics[\"capture_truncated\"\
+      ] = True\n        self._drain_tagged()\n        return n\n\n    def _scan_and_decode(self):\n  \
+      \      if len(self._buffer) < self.preamble_symbols * self.samples_per_symbol:\n            return\n\
+      \        from wireless_competition.rx.detector import FrameDetector\n        detector = FrameDetector(\n\
+      \            detection_threshold=self.detection_threshold,\n            samples_per_symbol=self.samples_per_symbol,\n\
+      \            preamble_length_symbols=self.preamble_symbols)\n        corr = detector.correlate(self._buffer.astype(np.complex128))\n\
+      \        window = len(detector.preamble_shaped)\n        peak_max = float(np.max(corr)) if len(corr)\
+      \ else 0.0\n        # 绝对门限抑制噪声，相对门限抑制 payload 内偶然出现的次相关峰。\n        # 归一化相关使不同接收幅度的合法前导仍可落在同一判据内。\n\
+      \        effective_threshold = max(self.detection_threshold, 0.70 * peak_max)\n        candidates\
+      \ = []\n        i = 0\n        while i < len(corr):\n            if corr[i] < effective_threshold:\n\
+      \                i += 1\n                continue\n            j = i\n            limit = min(len(corr),\
+      \ i + window)\n            peak = i\n            while j < limit and corr[j] >= effective_threshold:\n\
+      \                if corr[j] > corr[peak]:\n                    peak = j\n                j += 1\n\
+      \            preamble_start = peak - window + 1\n            frame_start = max(0, preamble_start\
+      \ - self.guard_symbols * self.samples_per_symbol)\n            if not candidates or frame_start\
+      \ - candidates[-1] > window:\n                candidates.append(frame_start)\n            i = max(j,\
+      \ peak + window // 2)\n        if not candidates:\n            return\n        self._metrics[\"\
+      correlation_fallback_used\"] = True\n        for index, start in enumerate(candidates):\n      \
+      \      end = candidates[index + 1] if index + 1 < len(candidates) else len(self._buffer)\n     \
+      \       if end > start:\n                self._decode_frame(self._buffer[start:end])\n\n    @staticmethod\n\
+      \    def _atomic_write(path, data):\n        target = Path(path)\n        target.parent.mkdir(parents=True,\
+      \ exist_ok=True)\n        tmp = target.with_suffix(target.suffix + \".tmp\")\n        tmp.write_bytes(data)\n\
+      \        os.replace(tmp, target)\n\n    @staticmethod\n    def _atomic_json(path, payload):\n  \
+      \      target = Path(path)\n        target.parent.mkdir(parents=True, exist_ok=True)\n        tmp\
+      \ = target.with_suffix(target.suffix + \".tmp\")\n        tmp.write_text(json.dumps(payload, ensure_ascii=False,\
+      \ indent=2) + \"\\n\",\n                       encoding=\"utf-8\")\n        os.replace(tmp, target)\n\
+      \n    def stop(self):\n        self._drain_tagged()\n        if self._pending_tags or (not self._blocks\
+      \ and len(self._buffer)):\n            self._scan_and_decode()\n        expected = self._total_blocks\n\
+      \        missing = ([] if expected is None else\n                   sorted(set(range(expected))\
+      \ - set(self._blocks)))\n        complete = expected is not None and expected > 0 and not missing\n\
+      \        source = Path(self.input_path)\n        if self.role == \"sim\" and source.is_file() and\
+      \ source.stat().st_size == 0:\n            complete = True\n            expected = 0\n         \
+      \   missing = []\n        output_bytes = b\"\"\n        if complete:\n            output_bytes =\
+      \ b\"\".join(self._blocks[i] for i in range(expected or 0))\n            self._atomic_write(self.output_path,\
+      \ output_bytes)\n        elif self._blocks:\n            parts_dir = Path(self.output_path + \"\
+      .parts\")\n            parts_dir.mkdir(parents=True, exist_ok=True)\n            for seq, payload\
+      \ in self._blocks.items():\n                self._atomic_write(parts_dir / (\"block_%05d.bin\" %\
+      \ seq), payload)\n        self._metrics.update({\n            \"file_id\": self._file_id, \"expected_blocks\"\
+      : expected,\n            \"missing_blocks\": missing, \"complete\": bool(complete),\n          \
+      \  \"output_path\": str(Path(self.output_path).resolve()) if complete else None,\n            \"\
+      output_sha256\": hashlib.sha256(output_bytes).hexdigest() if complete else None,\n        })\n \
+      \       if self.role == \"sim\" and source.is_file():\n            original = source.read_bytes()\n\
+      \            self._metrics[\"input_sha256\"] = hashlib.sha256(original).hexdigest()\n          \
+      \  self._metrics[\"byte_exact\"] = bool(complete and output_bytes == original)\n        self._atomic_json(self.metrics_path,\
+      \ self._metrics)\n        print(\"[contest-rx] complete=%s unique_bytes=%d missing=%s\" % (\n  \
+      \          complete, self._metrics[\"unique_payload_bytes\"], missing))\n        return True\n"
+    affinity: ''
+    alias: ''
+    comment: 连续硬件 IQ 的前导检测、同步、解调、FEC、CRC、去重与安全重组。
+    detection_threshold: detection_threshold
+    fec_mode: fec_mode
+    guard_symbols: guard_symbols
+    input_path: input_reference_path
+    max_capture_samples: max_capture_samples
+    maxoutbuf: '0'
+    metrics_path: metrics_path
+    minoutbuf: '0'
+    modulation: modulation
+    output_path: output_path
+    preamble_symbols: preamble_symbols
+    role: '''rx'''
+    rolloff: rrc_rolloff
+    samp_rate: samp_rate
+    samples_per_symbol: samples_per_symbol
+    seed: seed
+    span: rrc_span
+    use_frame_tags: 'False'
+  states:
+    _io_cache: '(''Contest RX: sync/demod/FEC/CRC/reassembly'', ''blk'', [(''role'', "''sim''"), (''output_path'',
+      "''decoded_payload.bin''"), (''metrics_path'', "''run_metrics.json''"), (''input_path'', "''input_payload.bin''"),
+      (''modulation'', "''bpsk''"), (''fec_mode'', "''convolutional''"), (''samp_rate'', ''2000000''),
+      (''samples_per_symbol'', ''8''), (''rolloff'', ''0.35''), (''span'', ''6''), (''preamble_symbols'',
+      ''64''), (''guard_symbols'', ''16''), (''detection_threshold'', ''0.45''), (''max_capture_samples'',
+      ''10000000''), (''use_frame_tags'', ''True''), (''seed'', ''42'')], [(''0'', ''complex'', 1)], [],
+      ''Tagged fast-path plus correlation fallback receiver and safe reassembler.'', [''detection_threshold'',
+      ''fec_mode'', ''guard_symbols'', ''input_path'', ''max_capture_samples'', ''metrics_path'', ''modulation'',
+      ''output_path'', ''preamble_symbols'', ''role'', ''rolloff'', ''samp_rate'', ''samples_per_symbol'',
+      ''seed'', ''span'', ''use_frame_tags''])'
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 664
+    - 452
+    rotation: 0
+    state: enabled
+- name: rx_iq_capture
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: 原始接收 IQ，complex64 little-endian。
+    file: iq_capture_path
+    type: complex
+    unbuffered: 'False'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 664
+    - 636
+    rotation: 0
+    state: enabled
+- name: note_rx_operation
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: RX 为有限只读采集：PlutoSDR Source 同时送入原始 IQ 文件和协议接收器。output_path 只在所有块齐全且 CRC 通过后生成；缺块保存在 .parts 目录。
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 24
+    - 316
+    rotation: 0
+    state: enabled
+- name: note_profile_match
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: center_frequency_hz、samp_rate、modulation、fec_mode、samples_per_symbol、RRC、前导、保护间隔和 seed 必须与 TX
+      完全一致。
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 736
+    - 316
+    rotation: 0
+    state: enabled
+connections:
+- - pluto_rx_source
+  - '0'
+  - rx_finite_head
+  - '0'
+- - rx_finite_head
+  - '0'
+  - contest_rx_sink
+  - '0'
+- - rx_finite_head
+  - '0'
+  - rx_iq_capture
+  - '0'
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
