@@ -1,0 +1,15 @@
+{
+  "_comment": "发射计划模板。填入实际参数后由 validate_radio_plan.py 校验。",
+  "mode": "simulation",
+  "center_frequency_hz": null,
+  "occupied_bandwidth_hz": null,
+  "sample_rate_hz": 2000000,
+  "tx_gain_db": null,
+  "device_uri": null,
+  "modulation": "bpsk",
+  "fec": "convolutional",
+  "dsss_enabled": false,
+  "dsss_code_length": 255,
+  "waveform_duration_s": null,
+  "duty_cycle": null
+}

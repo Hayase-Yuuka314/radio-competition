@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "authorization_confirmed": false,
+  "physical_tx_setup_confirmed": false,
+  "allowed_tx_bands_hz": [],
+  "sample_rate_sps": {
+    "min": 100000,
+    "max": 4000000
+  },
+  "occupied_bandwidth_hz": {
+    "max": 1000000
+  },
+  "duration_s": {
+    "max": 10.0
+  },
+  "tx_level": {
+    "parameter": "tx_hardwaregain_chan0",
+    "unit": "dB",
+    "min": -80.0,
+    "max": -10.0
+  }
+}

@@ -1,0 +1,37 @@
+# 仿真冒烟测试配置
+# 少量典型场景，每次保存后快速验证
+
+simulation:
+  random_seed: 42
+  data_size_bytes: 1024
+  sample_rate_hz: 2.0e6
+
+  # 默认场景
+  default:
+    snr_db: 30.0
+    cfo_hz: 0.0
+    modulation: bpsk
+    fec_type: none
+
+  # 冒烟场景矩阵
+  smoke:
+    - name: ideal_bpsk
+      snr_db: 30.0
+      cfo_hz: 0.0
+      modulation: bpsk
+      fec_type: none
+    - name: awgn_bpsk_high_snr
+      snr_db: 10.0
+      cfo_hz: 0.0
+      modulation: bpsk
+      fec_type: none
+    - name: awgn_bpsk_med_snr
+      snr_db: 3.0
+      cfo_hz: 0.0
+      modulation: bpsk
+      fec_type: none
+    - name: awgn_with_cfo
+      snr_db: 10.0
+      cfo_hz: 500.0
+      modulation: bpsk
+      fec_type: none

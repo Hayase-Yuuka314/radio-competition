@@ -1,0 +1,14 @@
+interface:
+  display_name: "SDR \u5BF9\u6297\u7ADE\u8D5B\u5DE5\u5177\u6808"
+  short_description: "\u63A2\u6D4B\u5E76\u8C03\u7528 PlutoSDR \u901A\u4FE1\u3001\u6297\
+    \u5E72\u6270\u4E0E\u79BB\u7EBF\u8BC4\u6D4B\u5DE5\u5177"
+  default_prompt: "\u4F7F\u7528 $run-sdr-contest-stack \u68C0\u67E5\u672C\u673A SDR\
+    \ \u5DE5\u5177\u6808\uFF0C\u5E76\u89C4\u5212\u4E00\u5957\u53EF\u79BB\u7EBF\u9A8C\
+    \u8BC1\u7684\u6297\u5E72\u6270\u6536\u53D1\u65B9\u6848\u3002"
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
