@@ -6,12 +6,12 @@ options:
     cmake_opt: ''
     comment: ''
     copyright: ''
-    description: RX - PlutoSDR @433MHz -> BPSK Demod with packet framing -> File
+    description: RX - PlutoSDR @433MHz BPSK Demod to File
     gen_cmake: 'On'
     gen_linking: dynamic
     generate_options: no_gui
     hier_block_src_path: '.:'
-    id: little_test_rx
+    id: rx_test
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -22,7 +22,7 @@ options:
     run_options: prompt
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: little_test_rx
+    title: rx_test
     window_size: (1000,1000)
   states:
     bus_sink: false
@@ -105,18 +105,6 @@ blocks:
     coordinate: [408, 84]
     rotation: 0
     state: enabled
-- name: access_code
-  id: variable
-  parameters:
-    comment: must match TX
-    value: '"11100011100011100011100011100011"'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [520, 12]
-    rotation: 0
-    state: enabled
 - name: import_0
   id: import
   parameters:
@@ -127,7 +115,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 156]
+    coordinate: [520, 12]
     rotation: 0
     state: enabled
 - name: rcc_taps
@@ -287,20 +275,23 @@ blocks:
     coordinate: [1280, 200.0]
     rotation: 0
     state: enabled
-- name: digital_protocol_parser_bb_0
-  id: digital_protocol_parser_bb
+- name: blocks_unpacked_to_packed_xx_0
+  id: blocks_unpacked_to_packed_xx
   parameters:
     affinity: ''
     alias: ''
-    comment: finds access_code, extracts payload
-    format: digital.header_format_default(access_code, 0, 1)
+    bits_per_chunk: '8'
+    comment: pack 8 bits to 1 byte
+    endianness: gr.GR_MSB_FIRST
     maxoutbuf: '0'
     minoutbuf: '0'
+    num_ports: '1'
+    type: byte
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1496, 200.0]
+    coordinate: [1488, 200.0]
     rotation: 0
     state: enabled
 - name: blocks_file_sink_0
@@ -320,17 +311,17 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1704, 200.0]
+    coordinate: [1688, 200.0]
     rotation: 0
     state: enabled
 
 connections:
 - [analog_agc_xx_0, '0', digital_fll_band_edge_cc_0, '0']
 - [blocks_skiphead_0, '0', digital_symbol_sync_xx_0, '0']
+- [blocks_unpacked_to_packed_xx_0, '0', blocks_file_sink_0, '0']
 - [digital_constellation_receiver_cb_0, '0', digital_diff_decoder_bb_0, '0']
-- [digital_diff_decoder_bb_0, '0', digital_protocol_parser_bb_0, '0']
+- [digital_diff_decoder_bb_0, '0', blocks_unpacked_to_packed_xx_0, '0']
 - [digital_fll_band_edge_cc_0, '0', blocks_skiphead_0, '0']
-- [digital_protocol_parser_bb_0, '0', blocks_file_sink_0, '0']
 - [digital_symbol_sync_xx_0, '0', digital_constellation_receiver_cb_0, '0']
 - [iio_pluto_source_0, '0', analog_agc_xx_0, '0']
 
