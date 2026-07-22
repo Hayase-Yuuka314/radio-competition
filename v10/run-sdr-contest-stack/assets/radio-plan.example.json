@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "mode": "simulation",
+  "device": {
+    "driver": "pluto",
+    "uri": "ip:192.168.2.1"
+  },
+  "tx": {
+    "center_frequency_hz": 433920000,
+    "sample_rate_sps": 1000000,
+    "occupied_bandwidth_hz": 250000,
+    "duration_s": 1.0,
+    "cyclic": false,
+    "stop_method": "tx_destroy_buffer",
+    "level": {
+      "parameter": "tx_hardwaregain_chan0",
+      "unit": "dB",
+      "value": -50.0
+    }
+  }
+}

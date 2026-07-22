@@ -1,0 +1,18 @@
+# 真实发射安全门。取得正式竞赛规程后再填写；任何 null 都不会被猜测。
+rules:
+  confirmed: false
+  contest_duration_s: null
+  scoring_mode: null
+
+rf:
+  allowed_bands_hz: null
+  allowed_center_frequencies_hz: null
+  max_occupied_bandwidth_hz: null
+  max_tx_power_dbm: null
+  max_tx_gain_db: null
+
+hardware:
+  device_model: NanoSDR_Pluto_compatible
+  tx_uri: null
+  rx_uri: null
+

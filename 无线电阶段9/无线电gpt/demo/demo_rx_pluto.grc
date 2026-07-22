@@ -1,0 +1,556 @@
+options:
+  parameters:
+    author: OpenAI Codex / wireless demo
+    catch_exceptions: 'True'
+    category: '[Demo]'
+    cmake_opt: ''
+    comment: "PlutoSDR DSSS \u6D4B\u8BD5\u63A5\u6536\u7AEF\uFF1B\u6210\u529F\u540E\
+      \u5199 decoded_message.txt\u3002"
+    copyright: '2026'
+    description: "PlutoSDR -> \u7A81\u53D1\u540C\u6B65/CFO -> DSSS \u89E3\u6269 ->\
+      \ \u53BB\u4EA4\u7EC7/\u7EF4\u7279\u6BD4 -> \u89E3\u6270/CRC"
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: demo_rx_pluto
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Demo RX - DSSS protected text over PlutoSDR
+    window_size: (1350,820)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: capture_samples
+  id: variable
+  parameters:
+    comment: "\u6709\u9650\u91C7\u96C6\uFF0C\u65F6\u95F4\u5230\u540E\u81EA\u52A8\u9000\
+      \u51FA"
+    value: int(capture_seconds*samp_rate)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [824, 112]
+    rotation: 0
+    state: enabled
+- name: capture_seconds
+  id: variable
+  parameters:
+    comment: "\u81EA\u52A8\u91C7\u96C6\u65F6\u957F\uFF1B\u5148\u542F\u52A8 RX\uFF0C\
+      \u518D\u5728\u6B64\u65F6\u95F4\u5185\u542F\u52A8 TX"
+    value: '15.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [664, 112]
+    rotation: 0
+    state: enabled
+- name: center_frequency_hz
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u4E0E TX \u76F8\u540C"
+    value: '433000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [464, 16]
+    rotation: 0
+    state: enabled
+- name: code_length
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u4E0E TX \u76F8\u540C"
+    value: '31'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [208, 112]
+    rotation: 0
+    state: enabled
+- name: device_uri
+  id: variable
+  parameters:
+    comment: RX Pluto URI
+    value: '''usb:1.3.5'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [240, 16]
+    rotation: 0
+    state: enabled
+- name: expected_sequence
+  id: variable
+  parameters:
+    comment: "\u5F53\u524D\u534F\u8BAE\u4FDD\u7559\u5B57\u6BB5\uFF1B\u63A5\u6536\u7AEF\
+      \u4F1A\u62A5\u544A\u5B9E\u9645\u5305\u5E8F\u53F7"
+    value: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 112]
+    rotation: 0
+    state: enabled
+- name: output_json_path
+  id: variable
+  parameters:
+    comment: "\u540C\u6B65\u3001\u9891\u504F\u3001CRC \u7B49\u72B6\u6001"
+    value: '''rx_status.json'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [360, 280.0]
+    rotation: 0
+    state: enabled
+- name: output_text_path
+  id: variable
+  parameters:
+    comment: "\u6210\u529F\u89E3\u7801\u7684\u660E\u6587"
+    value: '''decoded_message.txt'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [64, 288.0]
+    rotation: 0
+    state: enabled
+- name: rf_bandwidth_hz
+  id: variable
+  parameters:
+    comment: "Pluto \u6A21\u62DF\u57FA\u5E26\u5E26\u5BBD"
+    value: '800000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [824, 16]
+    rotation: 0
+    state: enabled
+- name: rx_buffer_samples
+  id: variable
+  parameters:
+    comment: "Pluto RX \u7F13\u51B2\u533A"
+    value: '32768'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 112]
+    rotation: 0
+    state: enabled
+- name: rx_gain_db
+  id: variable
+  parameters:
+    comment: "\u624B\u52A8 RX \u589E\u76CA\uFF0C\u5E38\u7528 20\u201350 dB"
+    value: '35.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1024, 112]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u4E0E TX \u76F8\u540C"
+    value: '1000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [664, 16]
+    rotation: 0
+    state: enabled
+- name: samples_per_chip
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u4E0E TX \u76F8\u540C"
+    value: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1120, 288.0]
+    rotation: 0
+    state: enabled
+- name: shared_key
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u4E0E TX \u5B8C\u5168\u76F8\u540C"
+    value: '''demo-shared-key-2026'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 16]
+    rotation: 0
+    state: enabled
+- name: team_id
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u4E0E TX \u76F8\u540C"
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 112]
+    rotation: 0
+    state: enabled
+- name: demo_rx_sink
+  id: epy_block
+  parameters:
+    _source_code: "from pathlib import Path\nimport json\nimport sys\nimport numpy\
+      \ as np\nfrom gnuradio import gr\n\n# GRC evaluates this source before generated-module\
+      \ ``__file__`` exists.\n# Support both that parse stage (workspace/demo) and\
+      \ normal runs from demo.\nfor _CANDIDATE in (\n    Path.cwd(), Path.cwd() /\
+      \ \"demo\",\n    Path(r\"C:\\Users\\16839\\Desktop\\\u65E0\u7EBF\u7535gpt\\\
+      demo\"),\n):\n    if (_CANDIDATE / \"demo_codec.py\").is_file() and str(_CANDIDATE)\
+      \ not in sys.path:\n        sys.path.insert(0, str(_CANDIDATE))\nfrom demo_codec\
+      \ import DemoConfig, PROJECT_BACKEND, StreamingDecoder\n\n\nclass blk(gr.sync_block):\n\
+      \    \"\"\"Streaming burst synchronizer and protected-packet decoder.\"\"\"\n\
+      \n    def __init__(self, shared_key=\"demo-shared-key-2026\", sample_rate=1000000,\n\
+      \                 samples_per_chip=4, code_length=31, team_id=0,\n         \
+      \        expected_sequence=1, output_text_path=\"decoded_message.txt\",\n  \
+      \               output_json_path=\"rx_status.json\"):\n        gr.sync_block.__init__(\n\
+      \            self, name=\"Demo DSSS sync/decoder\",\n            in_sig=[np.complex64],\
+      \ out_sig=None)\n        self.config = DemoConfig(\n            sample_rate=int(sample_rate),\
+      \ samples_per_chip=int(samples_per_chip),\n            code_length=int(code_length),\
+      \ team_id=int(team_id),\n            shared_key=str(shared_key), sequence=int(expected_sequence))\n\
+      \        self.decoder = StreamingDecoder(\n            self.config, str(output_text_path),\
+      \ str(output_json_path))\n        self.announced = False\n        self.output_json_path\
+      \ = Path(str(output_json_path))\n\n    def start(self):\n        print(\"[DEMO\
+      \ RX] Waiting for a protected DSSS packet...\")\n        print(\"[DEMO RX] Project\
+      \ codec backend:\", PROJECT_BACKEND)\n        return True\n\n    def work(self,\
+      \ input_items, output_items):\n        result = self.decoder.push(input_items[0])\n\
+      \        if result is not None and not self.announced:\n            self.announced\
+      \ = True\n            print(\"[DEMO RX] SUCCESS, CRC-32 passed\")\n        \
+      \    print(\"[DEMO RX] Message:\", result.message)\n            print(\"[DEMO\
+      \ RX] CFO: %.1f Hz, sync: %.3f, weakest pilot: %.3f\" %\n                  (result.cfo_hz,\
+      \ result.sync_score, result.minimum_pilot_score))\n        return len(input_items[0])\n\
+      \n    def stop(self):\n        if self.decoder.result is None:\n           \
+      \ status = {\n                \"status\": \"NO_VALID_PACKET\",\n           \
+      \     \"hint\": \"Check TX/RX frequency, URI, gain, attenuation and shared parameters.\"\
+      ,\n                \"attempts\": self.decoder.attempts,\n            }\n   \
+      \         self.output_json_path.write_text(\n                json.dumps(status,\
+      \ ensure_ascii=False, indent=2) + \"\\n\", encoding=\"utf-8\")\n           \
+      \ print(\"[DEMO RX] No CRC-valid packet was found; see rx_status.json\")\n \
+      \       return True\n"
+    affinity: ''
+    alias: ''
+    code_length: code_length
+    comment: "\u542B\u7A81\u53D1\u68C0\u6D4B\u3001FFT \u9891\u504F\u4F30\u8BA1\u3001\
+      \u540C\u6B65\u76F8\u5173\u3001\u5468\u671F\u5BFC\u9891\u8DDF\u8E2A\u3001\u89E3\
+      \u6269\u3001\u8F6F\u7EF4\u7279\u6BD4\u548C CRC"
+    expected_sequence: expected_sequence
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_json_path: r'C:/Users/16839/Desktop/rx_status.json'
+    output_text_path: r'C:/Users/16839/Desktop/rxoutput.txt'
+    sample_rate: samp_rate
+    samples_per_chip: samples_per_chip
+    shared_key: shared_key
+    team_id: team_id
+  states:
+    _io_cache: ('Demo DSSS sync/decoder', 'blk', [('shared_key', "'demo-shared-key-2026'"),
+      ('sample_rate', '1000000'), ('samples_per_chip', '4'), ('code_length', '31'),
+      ('team_id', '0'), ('expected_sequence', '1'), ('output_text_path', "'decoded_message.txt'"),
+      ('output_json_path', "'rx_status.json'")], [('0', 'complex', 1)], [], 'Streaming
+      burst synchronizer and protected-packet decoder.', ['output_json_path'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [936, 516.0]
+    rotation: 0
+    state: enabled
+- name: finite_capture
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "15 \u79D2\u540E\u81EA\u52A8\u7ED3\u675F\uFF1B\u53EF\u6309\u9700\u8981\
+      \u589E\u5927 capture_seconds"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: capture_samples
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [512, 548.0]
+    rotation: 0
+    state: enabled
+- name: note_output
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "\u6210\u529F\u6807\u5FD7\uFF1A\u7EC8\u7AEF\u663E\u793A SUCCESS\uFF1Bdecoded_message.txt\
+      \ \u5185\u5BB9\u4E3A el psy kongroo\uFF1Brx_status.json \u4E2D status=SUCCESS\
+      \ \u4E14 crc_ok=true\u3002"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [96, 748.0]
+    rotation: 0
+    state: enabled
+- name: note_rx_chain
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "\u63A5\u6536\uFF1A\u5305\u95F4\u9759\u9ED8\u68C0\u6D4B \u2192 62.5 kHz\
+      \ \u6355\u83B7\u97F3 FFT \u4F30\u9891\u504F \u2192 Gold \u540C\u6B65\u76F8\u5173\
+      \ \u2192 \u5468\u671F\u5BFC\u9891\u6821\u65F6/\u6821\u76F8 \u2192 DSSS \u89E3\
+      \u6269 \u2192 \u53BB\u4EA4\u7EC7 \u2192 \u8F6F\u7EF4\u7279\u6BD4 \u2192 \u5171\
+      \u4EAB\u5BC6\u94A5\u89E3\u6270 \u2192 CRC-32"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [104, 844.0]
+    rotation: 0
+    state: enabled
+- name: pluto_rx_source
+  id: iio_pluto_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: rf_bandwidth_hz
+    bbdc: 'True'
+    buffer_size: rx_buffer_samples
+    comment: "\u771F\u5B9E PlutoSDR \u63A5\u6536"
+    filter: ''''''
+    filter_source: '''Auto'''
+    fpass: '0'
+    frequency: center_frequency_hz
+    fstop: '0'
+    gain1: '''manual'''
+    len_tag_key: ''''''
+    manual_gain1: rx_gain_db
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rfdc: 'True'
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [152, 424.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_freq_sink_x_0
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'False'
+    fc: center_frequency_hz
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label: Relative Gain
+    label1: ''
+    label10: ''''''
+    label2: ''''''
+    label3: ''''''
+    label4: ''''''
+    label5: ''''''
+    label6: ''''''
+    label7: ''''''
+    label8: ''''''
+    label9: ''''''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '1'
+    norm_window: 'False'
+    showports: 'False'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    ymax: '10'
+    ymin: '-140'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [944, 904.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_time_sink_x_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'False'
+    entags: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label1: Signal 1
+    label10: Signal 10
+    label2: Signal 2
+    label3: Signal 3
+    label4: Signal 4
+    label5: Signal 5
+    label6: Signal 6
+    label7: Signal 7
+    label8: Signal 8
+    label9: Signal 9
+    legend: 'True'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '""'
+    nconnections: '1'
+    size: '1024'
+    srate: samp_rate
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: complex
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Amplitude
+    ymax: '1'
+    ymin: '-1'
+    yunit: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 1180.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [finite_capture, '0', demo_rx_sink, '0']
+- [finite_capture, '0', qtgui_freq_sink_x_0, '0']
+- [finite_capture, '0', qtgui_time_sink_x_0, '0']
+- [pluto_rx_source, '0', finite_capture, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

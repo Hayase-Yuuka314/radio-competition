@@ -1,0 +1,35 @@
+# 比赛规则配置模板
+# 所有 null 字段必须在获得正式规则后填写
+# 在关键 RF 字段为 null 时，空口发射命令必须拒绝运行
+
+rules:
+  confirmed: false
+  contest_duration_s: null
+  scoring_mode: null
+  feedback_allowed: null
+  half_duplex_allowed: null
+  dynamic_frequency_allowed: null
+  dynamic_modulation_allowed: null
+  pretrained_models_allowed: null
+  offline_iq_reprocessing_allowed: null
+
+rf:
+  allowed_bands_hz: null
+  allowed_center_frequencies_hz: null
+  max_occupied_bandwidth_hz: null
+  max_tx_power_dbm: null
+  max_tx_gain_db: null
+  duty_cycle_limit: null
+
+hardware:
+  device_model: NanoSDR_Pluto_compatible
+  tx_uri: null
+  rx_uri: null
+  supported_sample_rates_hz: null
+  supported_rf_bandwidths_hz: null
+
+scoring:
+  byte_exact: null
+  block_crc_required: null
+  partial_file_counts: null
+  duplicate_data_counts_once: true

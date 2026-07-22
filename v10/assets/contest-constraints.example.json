@@ -1,0 +1,22 @@
+{
+  "_comment": "比赛约束模板。从正式规则填写后冻结。",
+  "rules_confirmed": false,
+  "rf": {
+    "allowed_center_frequencies_hz": null,
+    "max_occupied_bandwidth_hz": null,
+    "max_tx_gain_db": null,
+    "max_tx_power_dbm": null,
+    "duty_cycle_limit": null
+  },
+  "hardware": {
+    "device_model": "NanoSDR_Pluto_compatible",
+    "supported_sample_rates_hz": null,
+    "supported_rf_bandwidths_hz": null
+  },
+  "contest": {
+    "duration_s": null,
+    "scoring_mode": null,
+    "feedback_allowed": null,
+    "dynamic_frequency_allowed": null
+  }
+}

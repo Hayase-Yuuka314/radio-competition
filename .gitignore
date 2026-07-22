@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+.idea/
+.venv/
+*.egg-info/
+*.npz
+*.npy
+*.bin
+.ipynb_checkpoints/
+.pytest_cache/
+.codegraph/
+.reasonix/
+artifacts/
+decoded_output.txt
+captured_iq.npy
+*.zip

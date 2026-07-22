@@ -1,0 +1,1312 @@
+options:
+  parameters:
+    author: Competition Team
+    catch_exceptions: 'True'
+    category: '[SDR Contest]'
+    cmake_opt: ''
+    comment: "\u5355\u6587\u4EF6\u7ADE\u8D5B\u6587\u4EF6\u4F20\u8F93\u94FE\u8DEF\uFF1A\
+      \u4EFF\u771F\u3001IQ \u56DE\u653E\u3001Pluto/NanoSDR TX/RX\u3002\u9ED8\u8BA4\
+      \u53EA\u4EFF\u771F\uFF1BRF TX \u53D7\u4E09\u91CD\u5B89\u5168\u95E8\u63A7\u3002"
+    copyright: '2026'
+    description: "CRC/FEC \u6587\u4EF6\u5206\u5E27 -> BPSK/QPSK + RRC -> \u53EF\u590D\
+      \u73B0\u4FE1\u9053/\u5E72\u6270 -> \u540C\u6B65\u89E3\u8C03/CRC/\u53BB\u91CD\
+      \u91CD\u7EC4\uFF1B\u542B IQ \u8BB0\u5F55\u4E0E\u53D7\u63A7 pyadi-iio \u786C\u4EF6\
+      \u63A5\u53E3\u3002"
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: sdr_contest_complete
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: SDR Contest Complete File Link
+    window_size: (1500,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: block_size
+  id: variable
+  parameters:
+    comment: "\u6587\u4EF6\u5206\u5757\u5B57\u8282\u6570"
+    value: '256'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [832, 12.0]
+    rotation: 0
+    state: enabled
+- name: burst_inr_db
+  id: variable
+  parameters:
+    comment: "\u7A81\u53D1\u5E72\u6270/\u4FE1\u53F7\u5E45\u5EA6\u6BD4 dB"
+    value: '10.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1416, 116.0]
+    rotation: 0
+    state: enabled
+- name: burst_probability
+  id: variable
+  parameters:
+    comment: "\u6BCF\u6837\u672C\u7A81\u53D1\u5E72\u6270\u6982\u7387"
+    value: '0.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 252.0]
+    rotation: 0
+    state: enabled
+- name: center_frequency_hz
+  id: variable
+  parameters:
+    comment: "\u672A\u77E5\u65F6\u4FDD\u6301 0\uFF1B\u7981\u6B62\u4ECE\u6EE4\u6CE2\
+      \u5668\u6807\u7B7E\u731C\u9891\u7387"
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1152, 384.0]
+    rotation: 0
+    state: enabled
+- name: cfo_hz
+  id: variable
+  parameters:
+    comment: "\u8F7D\u6CE2\u9891\u504F Hz"
+    value: '0.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [304, 240]
+    rotation: 0
+    state: enabled
+- name: channel_taps
+  id: variable
+  parameters:
+    comment: "\u590D\u6570\u591A\u5F84 FIR taps"
+    value: '[1.0+0.0j]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [560, 284.0]
+    rotation: 0
+    state: enabled
+- name: clipping_threshold
+  id: variable
+  parameters:
+    comment: "\u5E45\u5EA6\u9650\u5E45\uFF1B<=0 \u5173\u95ED"
+    value: '0.95'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1408, 4.0]
+    rotation: 0
+    state: enabled
+- name: device_uri
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u663E\u5F0F\u7ED1\u5B9A\u5B9E\u9645 URI/serial\uFF1B\u4E0D\
+      \u8981\u4F9D\u8D56\u7B2C\u4E00\u53F0\u8BBE\u5907"
+    value: '''ip:192.168.2.1'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [736, 132.0]
+    rotation: 0
+    state: enabled
+- name: fec_mode
+  id: variable
+  parameters:
+    comment: none | convolutional
+    value: '''convolutional'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [672, 16]
+    rotation: 0
+    state: enabled
+- name: guard_symbols
+  id: variable
+  parameters:
+    comment: "\u5E27\u9996\u5C3E\u4FDD\u62A4\u95F4\u9694"
+    value: '16'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [576, 136.0]
+    rotation: 0
+    state: enabled
+- name: input_path
+  id: variable
+  parameters:
+    comment: "\u5F85\u53D1\u9001\u6587\u4EF6\uFF1B\u4ECE\u672C\u6587\u4EF6\u5939\u542F\
+      \u52A8\u65F6\u76F4\u63A5\u53EF\u7528"
+    value: '''input_payload.bin'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 96]
+    rotation: 0
+    state: enabled
+- name: iq_capture_path
+  id: variable
+  parameters:
+    comment: "complex64 \u539F\u59CB\u63A5\u6536 IQ\uFF1B\u53C2\u6570\u8BB0\u5F55\u5728\
+      \ rx_device_manifest.json"
+    value: '''rx_capture.c64'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1424, 244.0]
+    rotation: 0
+    state: enabled
+- name: max_capture_samples
+  id: variable
+  parameters:
+    comment: "\u63A5\u6536\u7F13\u5B58\u786C\u4E0A\u9650\uFF0C\u9632\u6B62\u65E0\u754C\
+      \u5185\u5B58\u589E\u957F"
+    value: '10000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1656, 224.0]
+    rotation: 0
+    state: enabled
+- name: metrics_path
+  id: variable
+  parameters:
+    comment: "\u540C\u6B65/\u5934/FEC/CRC/\u53BB\u91CD/\u7F3A\u5757\u5206\u7C7B\u6307\
+      \u6807"
+    value: '''run_metrics.json'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1984, 152.0]
+    rotation: 0
+    state: enabled
+- name: modulation
+  id: variable
+  parameters:
+    comment: bpsk | qpsk
+    value: '''bpsk'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [544, 16]
+    rotation: 0
+    state: enabled
+- name: noise_voltage
+  id: variable
+  parameters:
+    comment: "GNU Radio Channel Model \u7684 AWGN \u7535\u538B"
+    value: tx_scale * 10**(-snr_db/20.0)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [128, 240]
+    rotation: 0
+    state: enabled
+- name: output_path
+  id: variable
+  parameters:
+    comment: "\u4EC5\u5728\u5168\u90E8\u5757 CRC \u901A\u8FC7\u4E14\u6536\u9F50\u540E\
+      \u539F\u5B50\u751F\u6210"
+    value: '''decoded_payload.bin'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [176, 96]
+    rotation: 0
+    state: enabled
+- name: physical_path_confirmed
+  id: variable
+  parameters:
+    comment: "RF TX \u5B89\u5168\u95E8 3/3\uFF1A\u6EE4\u6CE2\u5668/\u5929\u7EBF\u6216\
+      \u8870\u51CF\u5668/\u529F\u7387\u9884\u7B97\u5DF2\u6838\u5BF9"
+    value: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [304, 320]
+    rotation: 0
+    state: enabled
+- name: preamble_symbols
+  id: variable
+  parameters:
+    comment: "\u4E0E\u73B0\u6709\u63A5\u6536\u5668\u534F\u8BAE\u4E00\u81F4\uFF0C\u56FA\
+      \u5B9A 64"
+    value: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [256, 168]
+    rotation: 0
+    state: enabled
+- name: replay_path
+  id: variable
+  parameters:
+    comment: "role=replay \u65F6\u8BFB\u53D6\u7684 complex64 IQ"
+    value: '''rx_capture.c64'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1112, 4.0]
+    rotation: 0
+    state: enabled
+- name: rf_bandwidth_hz
+  id: variable
+  parameters:
+    comment: "\u5360\u7528/\u6A21\u62DF\u5E26\u5BBD\uFF0C\u5FC5\u987B\u6EE1\u8DB3\u6B63\
+      \u5F0F\u89C4\u5219"
+    value: '1000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1160, 116.0]
+    rotation: 0
+    state: enabled
+- name: rf_buffer_samples
+  id: variable
+  parameters:
+    comment: "pyadi-iio \u7F13\u51B2\u6837\u672C\u6570"
+    value: '32768'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [592, 428.0]
+    rotation: 0
+    state: enabled
+- name: rf_duration_s
+  id: variable
+  parameters:
+    comment: "\u786C\u4EF6 RX/TX \u6700\u957F\u8FD0\u884C\u65F6\u95F4\uFF1B\u5FC5\u987B\
+      \u6709\u9650"
+    value: '5.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [360, 428.0]
+    rotation: 0
+    state: enabled
+- name: rf_enable
+  id: variable
+  parameters:
+    comment: "RF TX \u5B89\u5168\u95E8 1/3\uFF1B\u9ED8\u8BA4 False"
+    value: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 320]
+    rotation: 0
+    state: enabled
+- name: role
+  id: variable
+  parameters:
+    comment: "sim | replay | tx | rx\u3002\u9ED8\u8BA4 sim\uFF1Btx \u4E0D\u4F1A\u7ED5\
+      \u8FC7\u5B89\u5168\u95E8\u3002"
+    value: '''sim'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 16]
+    rotation: 0
+    state: enabled
+- name: role_index
+  id: variable
+  parameters:
+    comment: "\u4EFF\u771F\u53D6\u4FE1\u9053\u652F\u8DEF\uFF0C\u5176\u4F59\u89D2\u8272\
+      \u53D6 IQ \u56DE\u653E/\u786C\u4EF6 RX \u652F\u8DEF\u3002"
+    value: 0 if role == 'sim' else 1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [144, 16]
+    rotation: 0
+    state: enabled
+- name: rrc_rolloff
+  id: variable
+  parameters:
+    comment: "RRC \u6EDA\u964D\u7CFB\u6570"
+    value: '0.35'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 168]
+    rotation: 0
+    state: enabled
+- name: rrc_span
+  id: variable
+  parameters:
+    comment: "RRC \u8DE8\u5EA6\uFF08\u7B26\u53F7\uFF09"
+    value: '6'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [144, 168]
+    rotation: 0
+    state: enabled
+- name: rules_confirmed
+  id: variable
+  parameters:
+    comment: "RF TX \u5B89\u5168\u95E8 2/3\uFF1B\u8FD8\u9700 YAML \u5185 confirmed=true"
+    value: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [144, 320]
+    rotation: 0
+    state: enabled
+- name: rules_path
+  id: variable
+  parameters:
+    comment: "\u6B63\u5F0F\u89C4\u5219\u7EA6\u675F\u6587\u4EF6"
+    value: '''contest_rules.yaml'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [728, 300.0]
+    rotation: 0
+    state: enabled
+- name: rx_gain_db
+  id: variable
+  parameters:
+    comment: "manual \u6A21\u5F0F\u63A5\u6536\u589E\u76CA"
+    value: '30.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [176, 392]
+    rotation: 0
+    state: enabled
+- name: rx_gain_mode
+  id: variable
+  parameters:
+    comment: manual | slow_attack | fast_attack | hybrid
+    value: '''manual'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 392]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: "\u590D\u57FA\u5E26\u91C7\u6837\u7387"
+    value: '2000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 16]
+    rotation: 0
+    state: enabled
+- name: samples_per_symbol
+  id: variable
+  parameters:
+    comment: "RRC \u6BCF\u7B26\u53F7\u91C7\u6837\u6570"
+    value: '8'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [384, 8.0]
+    rotation: 0
+    state: enabled
+- name: seed
+  id: variable
+  parameters:
+    comment: "\u6240\u6709\u968F\u673A\u8FC7\u7A0B\u56FA\u5B9A\u79CD\u5B50"
+    value: '42'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [968, 12.0]
+    rotation: 0
+    state: enabled
+- name: snr_db
+  id: variable
+  parameters:
+    comment: "\u4EFF\u771F\u4FE1\u566A\u6BD4 dB"
+    value: '30.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 240]
+    rotation: 0
+    state: enabled
+- name: sro_ppm
+  id: variable
+  parameters:
+    comment: "\u91C7\u6837\u949F\u504F\u5DEE ppm"
+    value: '0.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [416, 240]
+    rotation: 0
+    state: enabled
+- name: tone_inr_db
+  id: variable
+  parameters:
+    comment: "<=-100 \u5173\u95ED\u5355\u97F3\u5E72\u6270"
+    value: '-120.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [968, 268.0]
+    rotation: 0
+    state: enabled
+- name: tone_offset_hz
+  id: variable
+  parameters:
+    comment: "\u5355\u97F3\u76F8\u5BF9\u57FA\u5E26\u4E2D\u5FC3\u504F\u79FB Hz"
+    value: '100000.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [944, 148.0]
+    rotation: 0
+    state: enabled
+- name: tx_attenuation_db
+  id: variable
+  parameters:
+    comment: "AD936x TX \u786C\u4EF6\u589E\u76CA\uFF08\u8D1F dB\uFF09\uFF1B-89.75\
+      \ \u4E3A\u6700\u4F4E\u8F93\u51FA"
+    value: '-89.75'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1432, 376.0]
+    rotation: 0
+    state: enabled
+- name: tx_manifest_path
+  id: variable
+  parameters:
+    comment: "\u53D1\u9001\u6587\u4EF6\u54C8\u5E0C\u3001\u5E27\u957F\u4E0E\u7269\u7406\
+      \u5C42\u914D\u7F6E"
+    value: '''tx_manifest.json'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1976, 288.0]
+    rotation: 0
+    state: enabled
+- name: tx_scale
+  id: variable
+  parameters:
+    comment: "\u5CF0\u503C\u5F52\u4E00\u5316\u540E\u5E45\u5EA6\uFF0C\u907F\u514D DAC/\u4EFF\
+      \u771F\u524A\u9876"
+    value: '0.5'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1984, 32.0]
+    rotation: 0
+    state: enabled
+- name: channel_model
+  id: channels_channel_model
+  parameters:
+    affinity: ''
+    alias: ''
+    block_tags: 'False'
+    comment: "AWGN + CFO + SRO + \u591A\u5F84\uFF1BFalse \u8868\u793A\u4E0D\u963B\u65AD\
+      \u5E27\u957F tags\u3002"
+    epsilon: 1.0 + sro_ppm * 1e-6
+    freq_offset: cfo_hz / samp_rate
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    noise_voltage: noise_voltage
+    seed: seed
+    taps: channel_taps
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [472, 912.0]
+    rotation: 0
+    state: enabled
+- name: contest_pluto_tx_sink
+  id: epy_block
+  parameters:
+    _source_code: "from pathlib import Path\n\nimport numpy as np\nfrom gnuradio import\
+      \ gr\n\n\nclass blk(gr.sync_block):\n    \"\"\"Fail-closed, finite, non-cyclic\
+      \ pyadi-iio Pluto TX sink.\"\"\"\n\n    def __init__(self, role=\"sim\", rf_enable=False,\
+      \ rules_confirmed=False,\n                 physical_path_confirmed=False, rules_path=\"\
+      contest_rules.yaml\",\n                 device_uri=\"ip:192.168.2.1\", samp_rate=2000000,\n\
+      \                 center_frequency_hz=0, rf_bandwidth_hz=1000000,\n        \
+      \         tx_attenuation_db=-89.75, rf_duration_s=5.0,\n                 tx_buffer_samples=32768):\n\
+      \        gr.sync_block.__init__(\n            self, name=\"Contest TX: gated\
+      \ finite Pluto sink\",\n            in_sig=[np.complex64], out_sig=None)\n \
+      \       self.role = str(role)\n        self.rf_enable = bool(rf_enable)\n  \
+      \      self.rules_confirmed = bool(rules_confirmed)\n        self.physical_path_confirmed\
+      \ = bool(physical_path_confirmed)\n        self.rules_path = str(rules_path)\n\
+      \        self.device_uri = str(device_uri)\n        self.samp_rate = int(samp_rate)\n\
+      \        self.center_frequency_hz = int(center_frequency_hz)\n        self.rf_bandwidth_hz\
+      \ = int(rf_bandwidth_hz)\n        self.tx_attenuation_db = float(tx_attenuation_db)\n\
+      \        self.rf_duration_s = float(rf_duration_s)\n        self.tx_buffer_samples\
+      \ = int(tx_buffer_samples)\n        self._sdr = None\n        self._pending\
+      \ = np.empty(0, dtype=np.complex64)\n        self._sent = 0\n        self._max_samples\
+      \ = 0\n\n    def _validate_rules(self):\n        if not (self.rf_enable and\
+      \ self.rules_confirmed and self.physical_path_confirmed):\n            raise\
+      \ RuntimeError(\"RF TX gate closed: enable/rules/physical confirmation required\"\
+      )\n        if self.center_frequency_hz <= 0:\n            raise RuntimeError(\"\
+      center_frequency_hz is unknown\")\n        if not (0.0 < self.rf_duration_s\
+      \ <= 3600.0):\n            raise RuntimeError(\"rf_duration_s must be finite\
+      \ and in (0,3600]\")\n        if not (-89.75 <= self.tx_attenuation_db <= 0.0):\n\
+      \            raise RuntimeError(\"AD936x tx_attenuation_db must be in [-89.75,0]\"\
+      )\n        import yaml\n        path = Path(self.rules_path)\n        if not\
+      \ path.is_file():\n            raise RuntimeError(\"contest rule file not found\"\
+      )\n        cfg = yaml.safe_load(path.read_text(encoding=\"utf-8\")) or {}\n\
+      \        if not bool((cfg.get(\"rules\") or {}).get(\"confirmed\")):\n     \
+      \       raise RuntimeError(\"contest_rules.yaml rules.confirmed is not true\"\
+      )\n        rf = cfg.get(\"rf\") or {}\n        centers = rf.get(\"allowed_center_frequencies_hz\"\
+      )\n        bands = rf.get(\"allowed_bands_hz\")\n        permitted = False\n\
+      \        if centers:\n            permitted = self.center_frequency_hz in [int(v)\
+      \ for v in centers]\n        if bands:\n            permitted = permitted or\
+      \ any(\n                int(lo) <= self.center_frequency_hz <= int(hi) for lo,\
+      \ hi in bands)\n        if not permitted:\n            raise RuntimeError(\"\
+      center frequency is not explicitly authorized\")\n        max_bw = rf.get(\"\
+      max_occupied_bandwidth_hz\")\n        if max_bw is None or self.rf_bandwidth_hz\
+      \ > int(max_bw):\n            raise RuntimeError(\"RF bandwidth is unknown or\
+      \ exceeds constraints\")\n        duration = (cfg.get(\"rules\") or {}).get(\"\
+      contest_duration_s\")\n        if duration is None or self.rf_duration_s > float(duration):\n\
+      \            raise RuntimeError(\"TX duration is unknown or exceeds contest\
+      \ duration\")\n\n    def start(self):\n        if self.role != \"tx\":\n   \
+      \         return True\n        self._validate_rules()\n        import adi\n\
+      \        self._sdr = adi.Pluto(uri=self.device_uri)\n        self._sdr.sample_rate\
+      \ = self.samp_rate\n        self._sdr.tx_lo = self.center_frequency_hz\n   \
+      \     self._sdr.tx_rf_bandwidth = self.rf_bandwidth_hz\n        self._sdr.tx_hardwaregain_chan0\
+      \ = self.tx_attenuation_db\n        self._sdr.tx_cyclic_buffer = False\n   \
+      \     if hasattr(self._sdr, \"tx_buffer_size\"):\n            self._sdr.tx_buffer_size\
+      \ = self.tx_buffer_samples\n        self._max_samples = int(self.rf_duration_s\
+      \ * self.samp_rate)\n        self._pending = np.empty(0, dtype=np.complex64)\n\
+      \        self._sent = 0\n        return True\n\n    def _send(self, samples):\n\
+      \        if not len(samples):\n            return\n        peak = float(np.max(np.abs(samples)))\n\
+      \        if not np.isfinite(peak):\n            raise RuntimeError(\"TX IQ contains\
+      \ NaN/Inf\")\n        scaled = np.asarray(samples, dtype=np.complex64)\n   \
+      \     if peak > 0.95:\n            scaled = scaled * np.float32(0.95 / peak)\n\
+      \        self._sdr.tx(scaled * np.float32(2**14))\n        self._sent += len(scaled)\n\
+      \n    def work(self, input_items, output_items):\n        x = np.asarray(input_items[0],\
+      \ dtype=np.complex64)\n        if self.role != \"tx\":\n            return len(x)\n\
+      \        remaining = self._max_samples - self._sent - len(self._pending)\n \
+      \       if remaining <= 0:\n            return len(x)\n        take = min(len(x),\
+      \ remaining)\n        if take:\n            self._pending = np.concatenate((self._pending,\
+      \ x[:take]))\n        while len(self._pending) >= self.tx_buffer_samples:\n\
+      \            self._send(self._pending[:self.tx_buffer_samples])\n          \
+      \  self._pending = self._pending[self.tx_buffer_samples:]\n        return len(x)\n\
+      \n    def stop(self):\n        try:\n            if self.role == \"tx\" and\
+      \ self._sdr is not None and len(self._pending):\n                allowed = max(0,\
+      \ self._max_samples - self._sent)\n                self._send(self._pending[:allowed])\n\
+      \        finally:\n            self._pending = np.empty(0, dtype=np.complex64)\n\
+      \            if self._sdr is not None:\n                try:\n             \
+      \       self._sdr.tx_destroy_buffer()\n                finally:\n          \
+      \          self._sdr = None\n        return True\n"
+    affinity: ''
+    alias: ''
+    center_frequency_hz: center_frequency_hz
+    comment: ''
+    device_uri: device_uri
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    physical_path_confirmed: physical_path_confirmed
+    rf_bandwidth_hz: rf_bandwidth_hz
+    rf_duration_s: rf_duration_s
+    rf_enable: rf_enable
+    role: role
+    rules_confirmed: rules_confirmed
+    rules_path: rules_path
+    samp_rate: samp_rate
+    tx_attenuation_db: tx_attenuation_db
+    tx_buffer_samples: rf_buffer_samples
+  states:
+    _io_cache: '(''Contest TX: gated finite Pluto sink'', ''blk'', [(''role'', "''sim''"),
+      (''rf_enable'', ''False''), (''rules_confirmed'', ''False''), (''physical_path_confirmed'',
+      ''False''), (''rules_path'', "''contest_rules.yaml''"), (''device_uri'', "''ip:192.168.2.1''"),
+      (''samp_rate'', ''2000000''), (''center_frequency_hz'', ''0''), (''rf_bandwidth_hz'',
+      ''1000000''), (''tx_attenuation_db'', ''-89.75''), (''rf_duration_s'', ''5.0''),
+      (''tx_buffer_samples'', ''32768'')], [(''0'', ''complex'', 1)], [], ''Fail-closed,
+      finite, non-cyclic pyadi-iio Pluto TX sink.'', [''center_frequency_hz'', ''device_uri'',
+      ''physical_path_confirmed'', ''rf_bandwidth_hz'', ''rf_duration_s'', ''rf_enable'',
+      ''role'', ''rules_confirmed'', ''rules_path'', ''samp_rate'', ''tx_attenuation_db'',
+      ''tx_buffer_samples''])'
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [840, 408.0]
+    rotation: 0
+    state: enabled
+- name: contest_rx_sink
+  id: epy_block
+  parameters:
+    _source_code: "import hashlib\nimport json\nimport os\nfrom pathlib import Path\n\
+      \nimport numpy as np\nimport pmt\nfrom gnuradio import gr\n\n\nclass blk(gr.sync_block):\n\
+      \    \"\"\"Tagged fast-path plus correlation fallback receiver and safe reassembler.\"\
+      \"\"\n\n    def __init__(self, role=\"sim\", output_path=\"decoded_payload.bin\"\
+      ,\n                 metrics_path=\"run_metrics.json\", input_path=\"input_payload.bin\"\
+      ,\n                 modulation=\"bpsk\", fec_mode=\"convolutional\",\n     \
+      \            samp_rate=2000000, samples_per_symbol=8, rolloff=0.35,\n      \
+      \           span=6, preamble_symbols=64, guard_symbols=16,\n               \
+      \  detection_threshold=0.45, max_capture_samples=10000000,\n               \
+      \  use_frame_tags=True, seed=42):\n        gr.sync_block.__init__(\n       \
+      \     self, name=\"Contest RX: sync/demod/FEC/CRC/reassembly\",\n          \
+      \  in_sig=[np.complex64], out_sig=None)\n        self.role = str(role)\n   \
+      \     self.output_path = str(output_path)\n        self.metrics_path = str(metrics_path)\n\
+      \        self.input_path = str(input_path)\n        self.modulation = str(modulation).lower()\n\
+      \        self.fec_mode = str(fec_mode).lower()\n        self.samp_rate = float(samp_rate)\n\
+      \        self.samples_per_symbol = int(samples_per_symbol)\n        self.rolloff\
+      \ = float(rolloff)\n        self.span = int(span)\n        self.preamble_symbols\
+      \ = int(preamble_symbols)\n        self.guard_symbols = int(guard_symbols)\n\
+      \        self.detection_threshold = float(detection_threshold)\n        self.max_capture_samples\
+      \ = int(max_capture_samples)\n        self.use_frame_tags = bool(use_frame_tags)\n\
+      \        self.seed = int(seed)\n        self._buffer = np.empty(0, dtype=np.complex64)\n\
+      \        self._base_abs = 0\n        self._pending_tags = []\n        self._blocks\
+      \ = {}\n        self._total_blocks = None\n        self._file_id = None\n  \
+      \      self._rx = None\n        self._metrics = {}\n\n    def start(self):\n\
+      \        if self.preamble_symbols != 64:\n            raise ValueError(\"protocol\
+      \ v1 requires preamble_symbols=64\")\n        if self.guard_symbols < 1:\n \
+      \           raise ValueError(\"guard_symbols must be positive\")\n        from\
+      \ wireless_competition.common.types import FECType, ModulationType, RxProfile\n\
+      \        from wireless_competition.rx.sim_receiver import SimulationReceiver\n\
+      \        mod_map = {\"bpsk\": ModulationType.BPSK, \"qpsk\": ModulationType.QPSK}\n\
+      \        fec_map = {\"none\": FECType.NONE, \"convolutional\": FECType.CONVOLUTIONAL}\n\
+      \        if self.modulation not in mod_map or self.fec_mode not in fec_map:\n\
+      \            raise ValueError(\"unsupported modulation/FEC profile\")\n    \
+      \    profile = RxProfile(\n            modulation=mod_map[self.modulation],\
+      \ fec_type=fec_map[self.fec_mode],\n            samples_per_symbol=self.samples_per_symbol,\n\
+      \            rrc_rolloff=self.rolloff, rrc_span=self.span,\n            frame_detection_threshold=self.detection_threshold)\n\
+      \        self._rx = SimulationReceiver(profile=profile, seed=self.seed)\n  \
+      \      self._buffer = np.empty(0, dtype=np.complex64)\n        self._base_abs\
+      \ = 0\n        self._pending_tags = []\n        self._blocks = {}\n        self._total_blocks\
+      \ = None\n        self._file_id = None\n        self._metrics = {\n        \
+      \    \"role\": self.role, \"frames_attempted\": 0, \"frames_detected\": 0,\n\
+      \            \"header_failures\": 0, \"payload_crc_failures\": 0,\n        \
+      \    \"accepted_unique_frames\": 0, \"duplicate_frames\": 0,\n            \"\
+      unique_payload_bytes\": 0, \"correlation_fallback_used\": False,\n         \
+      \   \"capture_truncated\": False}\n        return True\n\n    def _decode_frame(self,\
+      \ frame):\n        from wireless_competition.common.types import FailureReason\n\
+      \        self._metrics[\"frames_attempted\"] += 1\n        result = self._rx.process_frame(\n\
+      \            np.asarray(frame, dtype=np.complex128), self.samp_rate,\n     \
+      \       guard_symbols=self.guard_symbols)\n        if result.frame_detected:\n\
+      \            self._metrics[\"frames_detected\"] += 1\n        reason = getattr(result.failure_reason,\
+      \ \"value\", str(result.failure_reason))\n        if not result.payload_crc_pass\
+      \ or result.metadata is None:\n            if \"header\" in str(reason).lower():\n\
+      \                self._metrics[\"header_failures\"] += 1\n            else:\n\
+      \                self._metrics[\"payload_crc_failures\"] += 1\n            return\n\
+      \        meta = result.metadata\n        seq = int(meta.block_sequence)\n  \
+      \      if seq in self._blocks:\n            self._metrics[\"duplicate_frames\"\
+      ] += 1\n            return\n        self._blocks[seq] = bytes(result.payload_bytes)\n\
+      \        self._total_blocks = int(meta.total_blocks)\n        self._file_id\
+      \ = int(meta.file_id)\n        self._metrics[\"accepted_unique_frames\"] +=\
+      \ 1\n        self._metrics[\"unique_payload_bytes\"] += len(result.payload_bytes)\n\
+      \n    def _drain_tagged(self):\n        self._pending_tags.sort(key=lambda item:\
+      \ item[0])\n        while self._pending_tags:\n            offset, length =\
+      \ self._pending_tags[0]\n            start = int(offset - self._base_abs)\n\
+      \            if start < 0:\n                self._pending_tags.pop(0)\n    \
+      \            continue\n            end = start + int(length)\n            if\
+      \ end > len(self._buffer):\n                break\n            frame = self._buffer[start:end].copy()\n\
+      \            self._decode_frame(frame)\n            self._buffer = self._buffer[end:]\n\
+      \            self._base_abs += end\n            self._pending_tags.pop(0)\n\n\
+      \    def work(self, input_items, output_items):\n        x = np.asarray(input_items[0],\
+      \ dtype=np.complex64)\n        n = len(x)\n        absolute = int(self.nitems_read(0))\n\
+      \        tags = (self.get_tags_in_window(0, 0, n, pmt.intern(\"frame_len\"))\n\
+      \                if self.use_frame_tags else [])\n        for tag in tags:\n\
+      \            self._pending_tags.append((int(tag.offset), int(pmt.to_long(tag.value))))\n\
+      \        if n:\n            room = self.max_capture_samples - len(self._buffer)\n\
+      \            if room <= 0:\n                self._metrics[\"capture_truncated\"\
+      ] = True\n            else:\n                take = min(n, room)\n         \
+      \       self._buffer = np.concatenate((self._buffer, x[:take]))\n          \
+      \      if take < n:\n                    self._metrics[\"capture_truncated\"\
+      ] = True\n        self._drain_tagged()\n        return n\n\n    def _scan_and_decode(self):\n\
+      \        if len(self._buffer) < self.preamble_symbols * self.samples_per_symbol:\n\
+      \            return\n        from wireless_competition.rx.detector import FrameDetector\n\
+      \        detector = FrameDetector(\n            detection_threshold=self.detection_threshold,\n\
+      \            samples_per_symbol=self.samples_per_symbol,\n            preamble_length_symbols=self.preamble_symbols)\n\
+      \        corr = detector.correlate(self._buffer.astype(np.complex128))\n   \
+      \     window = len(detector.preamble_shaped)\n        peak_max = float(np.max(corr))\
+      \ if len(corr) else 0.0\n        # \u7EDD\u5BF9\u95E8\u9650\u6291\u5236\u566A\
+      \u58F0\uFF0C\u76F8\u5BF9\u95E8\u9650\u6291\u5236 payload \u5185\u5076\u7136\u51FA\
+      \u73B0\u7684\u6B21\u76F8\u5173\u5CF0\u3002\n        # \u5F52\u4E00\u5316\u76F8\
+      \u5173\u4F7F\u4E0D\u540C\u63A5\u6536\u5E45\u5EA6\u7684\u5408\u6CD5\u524D\u5BFC\
+      \u4ECD\u53EF\u843D\u5728\u540C\u4E00\u5224\u636E\u5185\u3002\n        effective_threshold\
+      \ = max(self.detection_threshold, 0.70 * peak_max)\n        candidates = []\n\
+      \        i = 0\n        while i < len(corr):\n            if corr[i] < effective_threshold:\n\
+      \                i += 1\n                continue\n            j = i\n     \
+      \       limit = min(len(corr), i + window)\n            peak = i\n         \
+      \   while j < limit and corr[j] >= effective_threshold:\n                if\
+      \ corr[j] > corr[peak]:\n                    peak = j\n                j +=\
+      \ 1\n            preamble_start = peak - window + 1\n            frame_start\
+      \ = max(0, preamble_start - self.guard_symbols * self.samples_per_symbol)\n\
+      \            if not candidates or frame_start - candidates[-1] > window:\n \
+      \               candidates.append(frame_start)\n            i = max(j, peak\
+      \ + window // 2)\n        if not candidates:\n            return\n        self._metrics[\"\
+      correlation_fallback_used\"] = True\n        for index, start in enumerate(candidates):\n\
+      \            end = candidates[index + 1] if index + 1 < len(candidates) else\
+      \ len(self._buffer)\n            if end > start:\n                self._decode_frame(self._buffer[start:end])\n\
+      \n    @staticmethod\n    def _atomic_write(path, data):\n        target = Path(path)\n\
+      \        target.parent.mkdir(parents=True, exist_ok=True)\n        tmp = target.with_suffix(target.suffix\
+      \ + \".tmp\")\n        tmp.write_bytes(data)\n        os.replace(tmp, target)\n\
+      \n    @staticmethod\n    def _atomic_json(path, payload):\n        target =\
+      \ Path(path)\n        target.parent.mkdir(parents=True, exist_ok=True)\n   \
+      \     tmp = target.with_suffix(target.suffix + \".tmp\")\n        tmp.write_text(json.dumps(payload,\
+      \ ensure_ascii=False, indent=2) + \"\\n\",\n                       encoding=\"\
+      utf-8\")\n        os.replace(tmp, target)\n\n    def stop(self):\n        self._drain_tagged()\n\
+      \        if self._pending_tags or (not self._blocks and len(self._buffer)):\n\
+      \            self._scan_and_decode()\n        expected = self._total_blocks\n\
+      \        missing = ([] if expected is None else\n                   sorted(set(range(expected))\
+      \ - set(self._blocks)))\n        complete = expected is not None and expected\
+      \ > 0 and not missing\n        source = Path(self.input_path)\n        if self.role\
+      \ == \"sim\" and source.is_file() and source.stat().st_size == 0:\n        \
+      \    complete = True\n            expected = 0\n            missing = []\n \
+      \       output_bytes = b\"\"\n        if complete:\n            output_bytes\
+      \ = b\"\".join(self._blocks[i] for i in range(expected or 0))\n            self._atomic_write(self.output_path,\
+      \ output_bytes)\n        elif self._blocks:\n            parts_dir = Path(self.output_path\
+      \ + \".parts\")\n            parts_dir.mkdir(parents=True, exist_ok=True)\n\
+      \            for seq, payload in self._blocks.items():\n                self._atomic_write(parts_dir\
+      \ / (\"block_%05d.bin\" % seq), payload)\n        self._metrics.update({\n \
+      \           \"file_id\": self._file_id, \"expected_blocks\": expected,\n   \
+      \         \"missing_blocks\": missing, \"complete\": bool(complete),\n     \
+      \       \"output_path\": str(Path(self.output_path).resolve()) if complete else\
+      \ None,\n            \"output_sha256\": hashlib.sha256(output_bytes).hexdigest()\
+      \ if complete else None,\n        })\n        if self.role == \"sim\" and source.is_file():\n\
+      \            original = source.read_bytes()\n            self._metrics[\"input_sha256\"\
+      ] = hashlib.sha256(original).hexdigest()\n            self._metrics[\"byte_exact\"\
+      ] = bool(complete and output_bytes == original)\n        self._atomic_json(self.metrics_path,\
+      \ self._metrics)\n        print(\"[contest-rx] complete=%s unique_bytes=%d missing=%s\"\
+      \ % (\n            complete, self._metrics[\"unique_payload_bytes\"], missing))\n\
+      \        return True\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    detection_threshold: '0.45'
+    fec_mode: fec_mode
+    guard_symbols: guard_symbols
+    input_path: input_path
+    max_capture_samples: max_capture_samples
+    maxoutbuf: '0'
+    metrics_path: metrics_path
+    minoutbuf: '0'
+    modulation: modulation
+    output_path: output_path
+    preamble_symbols: preamble_symbols
+    role: role
+    rolloff: rrc_rolloff
+    samp_rate: samp_rate
+    samples_per_symbol: samples_per_symbol
+    seed: seed
+    span: rrc_span
+    use_frame_tags: abs(sro_ppm) < 1e-12
+  states:
+    _io_cache: '(''Contest RX: sync/demod/FEC/CRC/reassembly'', ''blk'', [(''role'',
+      "''sim''"), (''output_path'', "''decoded_payload.bin''"), (''metrics_path'',
+      "''run_metrics.json''"), (''input_path'', "''input_payload.bin''"), (''modulation'',
+      "''bpsk''"), (''fec_mode'', "''convolutional''"), (''samp_rate'', ''2000000''),
+      (''samples_per_symbol'', ''8''), (''rolloff'', ''0.35''), (''span'', ''6''),
+      (''preamble_symbols'', ''64''), (''guard_symbols'', ''16''), (''detection_threshold'',
+      ''0.45''), (''max_capture_samples'', ''10000000''), (''use_frame_tags'', ''True''),
+      (''seed'', ''42'')], [(''0'', ''complex'', 1)], [], ''Tagged fast-path plus
+      correlation fallback receiver and safe reassembler.'', [''detection_threshold'',
+      ''fec_mode'', ''guard_symbols'', ''input_path'', ''max_capture_samples'', ''metrics_path'',
+      ''modulation'', ''output_path'', ''preamble_symbols'', ''role'', ''rolloff'',
+      ''samp_rate'', ''samples_per_symbol'', ''seed'', ''span'', ''use_frame_tags''])'
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1928, 456.0]
+    rotation: 0
+    state: enabled
+- name: contest_rx_source
+  id: epy_block
+  parameters:
+    _source_code: "import json\nimport os\nfrom pathlib import Path\n\nimport numpy\
+      \ as np\nfrom gnuradio import gr\n\n\nclass blk(gr.sync_block):\n    \"\"\"\
+      Bounded replay or RX-only Pluto/NanoSDR source.\"\"\"\n\n    def __init__(self,\
+      \ role=\"sim\", replay_path=\"rx_capture.c64\",\n                 device_uri=\"\
+      ip:192.168.2.1\", samp_rate=2000000,\n                 center_frequency_hz=0,\
+      \ rf_bandwidth_hz=1000000,\n                 rx_gain_mode=\"manual\", rx_gain_db=30.0,\n\
+      \                 rx_buffer_samples=32768, rf_duration_s=5.0,\n            \
+      \     max_capture_samples=10000000,\n                 device_manifest_path=\"\
+      rx_device_manifest.json\"):\n        gr.sync_block.__init__(\n            self,\
+      \ name=\"Contest RX: bounded IQ replay/Pluto\",\n            in_sig=None, out_sig=[np.complex64])\n\
+      \        self.role = str(role)\n        self.replay_path = str(replay_path)\n\
+      \        self.device_uri = str(device_uri)\n        self.samp_rate = int(samp_rate)\n\
+      \        self.center_frequency_hz = int(center_frequency_hz)\n        self.rf_bandwidth_hz\
+      \ = int(rf_bandwidth_hz)\n        self.rx_gain_mode = str(rx_gain_mode)\n  \
+      \      self.rx_gain_db = float(rx_gain_db)\n        self.rx_buffer_samples =\
+      \ int(rx_buffer_samples)\n        self.rf_duration_s = float(rf_duration_s)\n\
+      \        self.max_capture_samples = int(max_capture_samples)\n        self.device_manifest_path\
+      \ = str(device_manifest_path)\n        self._data = np.empty(0, dtype=np.complex64)\n\
+      \        self._pending = np.empty(0, dtype=np.complex64)\n        self._cursor\
+      \ = 0\n        self._remaining = 0\n        self._sdr = None\n\n    def _write_manifest(self,\
+      \ payload):\n        target = Path(self.device_manifest_path)\n        target.parent.mkdir(parents=True,\
+      \ exist_ok=True)\n        tmp = target.with_suffix(target.suffix + \".tmp\"\
+      )\n        tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2)\
+      \ + \"\\n\",\n                       encoding=\"utf-8\")\n        os.replace(tmp,\
+      \ target)\n\n    def start(self):\n        if self.role == \"replay\":\n   \
+      \         path = Path(self.replay_path)\n            if not path.is_file():\n\
+      \                raise FileNotFoundError(\"IQ replay file not found: %s\" %\
+      \ path)\n            count = min(path.stat().st_size // 8, self.max_capture_samples)\n\
+      \            self._data = np.fromfile(path, dtype=np.complex64, count=count)\n\
+      \            self._cursor = 0\n            self._write_manifest({\n        \
+      \        \"mode\": \"replay\", \"path\": str(path.resolve()),\n            \
+      \    \"datatype\": \"cf32_le\", \"sample_rate_hz\": self.samp_rate,\n      \
+      \          \"samples\": int(len(self._data)),\n                \"center_frequency_hz\"\
+      : self.center_frequency_hz})\n            return True\n        if self.role\
+      \ != \"rx\":\n            return True\n        if self.center_frequency_hz <=\
+      \ 0:\n            raise ValueError(\"RX center_frequency_hz must be explicitly\
+      \ set\")\n        if not (0.0 < self.rf_duration_s <= 3600.0):\n           \
+      \ raise ValueError(\"rf_duration_s must be finite and in (0,3600]\")\n     \
+      \   requested = int(self.rf_duration_s * self.samp_rate)\n        self._remaining\
+      \ = min(requested, self.max_capture_samples)\n        import adi\n        self._sdr\
+      \ = adi.Pluto(uri=self.device_uri)\n        self._sdr.sample_rate = self.samp_rate\n\
+      \        self._sdr.rx_lo = self.center_frequency_hz\n        self._sdr.rx_rf_bandwidth\
+      \ = self.rf_bandwidth_hz\n        self._sdr.gain_control_mode_chan0 = self.rx_gain_mode\n\
+      \        if self.rx_gain_mode == \"manual\":\n            self._sdr.rx_hardwaregain_chan0\
+      \ = self.rx_gain_db\n        self._sdr.rx_buffer_size = self.rx_buffer_samples\n\
+      \        self._write_manifest({\n            \"mode\": \"rx\", \"uri\": self.device_uri,\
+      \ \"datatype\": \"cf32_le\",\n            \"sample_rate_hz_requested\": self.samp_rate,\n\
+      \            \"sample_rate_hz_readback\": int(self._sdr.sample_rate),\n    \
+      \        \"center_frequency_hz_requested\": self.center_frequency_hz,\n    \
+      \        \"center_frequency_hz_readback\": int(self._sdr.rx_lo),\n         \
+      \   \"rf_bandwidth_hz_requested\": self.rf_bandwidth_hz,\n            \"rf_bandwidth_hz_readback\"\
+      : int(self._sdr.rx_rf_bandwidth),\n            \"gain_mode\": self.rx_gain_mode,\n\
+      \            \"manual_gain_db\": self.rx_gain_db if self.rx_gain_mode == \"\
+      manual\" else None,\n            \"duration_s\": self.rf_duration_s,\n     \
+      \       \"max_samples\": self._remaining})\n        return True\n\n    def work(self,\
+      \ input_items, output_items):\n        out = output_items[0]\n        if self.role\
+      \ == \"replay\":\n            if self._cursor >= len(self._data):\n        \
+      \        return -1\n            n = min(len(out), len(self._data) - self._cursor)\n\
+      \            out[:n] = self._data[self._cursor:self._cursor + n]\n         \
+      \   self._cursor += n\n            return n\n        if self.role != \"rx\"\
+      \ or self._remaining <= 0:\n            return -1\n        produced = 0\n  \
+      \      while produced < len(out) and self._remaining > 0:\n            if not\
+      \ len(self._pending):\n                self._pending = np.asarray(self._sdr.rx(),\
+      \ dtype=np.complex64).reshape(-1)\n            n = min(len(out) - produced,\
+      \ len(self._pending), self._remaining)\n            out[produced:produced +\
+      \ n] = self._pending[:n]\n            self._pending = self._pending[n:]\n  \
+      \          produced += n\n            self._remaining -= n\n        return produced\
+      \ if produced else -1\n\n    def stop(self):\n        self._pending = np.empty(0,\
+      \ dtype=np.complex64)\n        self._sdr = None\n        return True\n"
+    affinity: ''
+    alias: ''
+    center_frequency_hz: center_frequency_hz
+    comment: ''
+    device_manifest_path: '''rx_device_manifest.json'''
+    device_uri: device_uri
+    max_capture_samples: max_capture_samples
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    replay_path: replay_path
+    rf_bandwidth_hz: rf_bandwidth_hz
+    rf_duration_s: rf_duration_s
+    role: role
+    rx_buffer_samples: rf_buffer_samples
+    rx_gain_db: rx_gain_db
+    rx_gain_mode: rx_gain_mode
+    samp_rate: samp_rate
+  states:
+    _io_cache: '(''Contest RX: bounded IQ replay/Pluto'', ''blk'', [(''role'', "''sim''"),
+      (''replay_path'', "''rx_capture.c64''"), (''device_uri'', "''ip:192.168.2.1''"),
+      (''samp_rate'', ''2000000''), (''center_frequency_hz'', ''0''), (''rf_bandwidth_hz'',
+      ''1000000''), (''rx_gain_mode'', "''manual''"), (''rx_gain_db'', ''30.0''),
+      (''rx_buffer_samples'', ''32768''), (''rf_duration_s'', ''5.0''), (''max_capture_samples'',
+      ''10000000''), (''device_manifest_path'', "''rx_device_manifest.json''")], [],
+      [(''0'', ''complex'', 1)], ''Bounded replay or RX-only Pluto/NanoSDR source.'',
+      [''center_frequency_hz'', ''device_manifest_path'', ''device_uri'', ''max_capture_samples'',
+      ''replay_path'', ''rf_bandwidth_hz'', ''rf_duration_s'', ''role'', ''rx_buffer_samples'',
+      ''rx_gain_db'', ''rx_gain_mode'', ''samp_rate''])'
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1184, 968.0]
+    rotation: 0
+    state: enabled
+- name: contest_tx_source
+  id: epy_block
+  parameters:
+    _source_code: "import hashlib\nimport json\nimport os\nfrom pathlib import Path\n\
+      \nimport numpy as np\nimport pmt\nfrom gnuradio import gr\n\n\nclass blk(gr.sync_block):\n\
+      \    \"\"\"Finite file-to-IQ source using the repository's tested PHY protocol.\"\
+      \"\"\n\n    def __init__(self, role=\"sim\", input_path=\"input_payload.bin\"\
+      ,\n                 manifest_path=\"tx_manifest.json\", modulation=\"bpsk\"\
+      ,\n                 fec_mode=\"convolutional\", samp_rate=2000000,\n       \
+      \          samples_per_symbol=8, rolloff=0.35, span=6,\n                 block_size=256,\
+      \ preamble_symbols=64, guard_symbols=16,\n                 seed=42, tx_scale=0.5):\n\
+      \        gr.sync_block.__init__(\n            self, name=\"Contest TX: file/framing/FEC/mod/RRC\"\
+      ,\n            in_sig=None, out_sig=[np.complex64])\n        self.role = str(role)\n\
+      \        self.input_path = str(input_path)\n        self.manifest_path = str(manifest_path)\n\
+      \        self.modulation = str(modulation).lower()\n        self.fec_mode =\
+      \ str(fec_mode).lower()\n        self.samp_rate = int(samp_rate)\n        self.samples_per_symbol\
+      \ = int(samples_per_symbol)\n        self.rolloff = float(rolloff)\n       \
+      \ self.span = int(span)\n        self.block_size = int(block_size)\n       \
+      \ self.preamble_symbols = int(preamble_symbols)\n        self.guard_symbols\
+      \ = int(guard_symbols)\n        self.seed = int(seed)\n        self.tx_scale\
+      \ = float(tx_scale)\n        self._waveform = np.empty(0, dtype=np.complex64)\n\
+      \        self._frames = []\n        self._frame_offsets = []\n        self._cursor\
+      \ = 0\n        self._next_tag = 0\n\n    @staticmethod\n    def _atomic_json(path,\
+      \ payload):\n        target = Path(path)\n        target.parent.mkdir(parents=True,\
+      \ exist_ok=True)\n        tmp = target.with_suffix(target.suffix + \".tmp\"\
+      )\n        tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2)\
+      \ + \"\\n\",\n                       encoding=\"utf-8\")\n        os.replace(tmp,\
+      \ target)\n\n    def start(self):\n        if self.role not in (\"sim\", \"\
+      tx\"):\n            return True\n        if self.preamble_symbols != 64:\n \
+      \           raise ValueError(\"protocol v1 requires preamble_symbols=64\")\n\
+      \        if self.guard_symbols < 1 or self.samples_per_symbol < 2:\n       \
+      \     raise ValueError(\"guard_symbols and samples_per_symbol are invalid\"\
+      )\n        if not (0.0 < self.tx_scale <= 0.95):\n            raise ValueError(\"\
+      tx_scale must be in (0, 0.95]\")\n\n        from wireless_competition.common.types\
+      \ import FECType, ModulationType\n        from wireless_competition.tx.pipeline\
+      \ import TXPipeline\n\n        mod_map = {\"bpsk\": ModulationType.BPSK, \"\
+      qpsk\": ModulationType.QPSK}\n        fec_map = {\"none\": FECType.NONE, \"\
+      convolutional\": FECType.CONVOLUTIONAL}\n        if self.modulation not in mod_map:\n\
+      \            raise ValueError(\"modulation must be bpsk or qpsk\")\n       \
+      \ if self.fec_mode not in fec_map:\n            raise ValueError(\"fec_mode\
+      \ must be none or convolutional\")\n\n        source = Path(self.input_path)\n\
+      \        if not source.is_file():\n            raise FileNotFoundError(\"input\
+      \ payload not found: %s\" % source)\n        data = source.read_bytes()\n  \
+      \      tx = TXPipeline(\n            modulation=mod_map[self.modulation], fec_type=fec_map[self.fec_mode],\n\
+      \            samples_per_symbol=self.samples_per_symbol, rolloff=self.rolloff,\n\
+      \            span=self.span, block_size=self.block_size,\n            preamble_length_symbols=self.preamble_symbols,\n\
+      \            guard_length_symbols=self.guard_symbols, seed=self.seed)\n    \
+      \    raw_frames = tx.process_file(data)\n        self._frames = []\n       \
+      \ for frame in raw_frames:\n            frame = np.asarray(frame, dtype=np.complex64)\n\
+      \            peak = float(np.max(np.abs(frame))) if frame.size else 0.0\n  \
+      \          if peak > 0.0:\n                frame = frame * np.float32(self.tx_scale\
+      \ / peak)\n            self._frames.append(frame.astype(np.complex64, copy=False))\n\
+      \        self._frame_offsets = []\n        offset = 0\n        for frame in\
+      \ self._frames:\n            self._frame_offsets.append((offset, len(frame)))\n\
+      \            offset += len(frame)\n        self._waveform = (np.concatenate(self._frames)\n\
+      \                          if self._frames else np.empty(0, dtype=np.complex64))\n\
+      \        self._cursor = 0\n        self._next_tag = 0\n        manifest = {\n\
+      \            \"protocol_version\": 1,\n            \"input_path\": str(source.resolve()),\n\
+      \            \"payload_bytes\": len(data),\n            \"payload_sha256\":\
+      \ hashlib.sha256(data).hexdigest(),\n            \"frame_count\": len(self._frames),\n\
+      \            \"frame_lengths_samples\": [len(f) for f in self._frames],\n  \
+      \          \"sample_rate_hz\": self.samp_rate,\n            \"modulation\":\
+      \ self.modulation,\n            \"fec\": self.fec_mode,\n            \"block_size_bytes\"\
+      : self.block_size,\n            \"samples_per_symbol\": self.samples_per_symbol,\n\
+      \            \"rrc_rolloff\": self.rolloff,\n            \"rrc_span\": self.span,\n\
+      \            \"preamble_symbols\": self.preamble_symbols,\n            \"guard_symbols\"\
+      : self.guard_symbols,\n            \"seed\": self.seed,\n            \"peak_scale\"\
+      : self.tx_scale,\n        }\n        self._atomic_json(self.manifest_path, manifest)\n\
+      \        return True\n\n    def work(self, input_items, output_items):\n   \
+      \     if self._cursor >= len(self._waveform):\n            return -1\n     \
+      \   out = output_items[0]\n        count = min(len(out), len(self._waveform)\
+      \ - self._cursor)\n        absolute_start = int(self.nitems_written(0))\n  \
+      \      absolute_end = absolute_start + count\n        while self._next_tag <\
+      \ len(self._frame_offsets):\n            tag_offset, frame_len = self._frame_offsets[self._next_tag]\n\
+      \            if tag_offset >= absolute_end:\n                break\n       \
+      \     if tag_offset >= absolute_start:\n                self.add_item_tag(0,\
+      \ int(tag_offset), pmt.intern(\"frame_len\"),\n                            \
+      \      pmt.from_long(int(frame_len)))\n            self._next_tag += 1\n   \
+      \     out[:count] = self._waveform[self._cursor:self._cursor + count]\n    \
+      \    self._cursor += count\n        return count\n"
+    affinity: ''
+    alias: ''
+    block_size: block_size
+    comment: ''
+    fec_mode: fec_mode
+    guard_symbols: guard_symbols
+    input_path: input_path
+    manifest_path: tx_manifest_path
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulation: modulation
+    preamble_symbols: preamble_symbols
+    role: role
+    rolloff: rrc_rolloff
+    samp_rate: samp_rate
+    samples_per_symbol: samples_per_symbol
+    seed: seed
+    span: rrc_span
+    tx_scale: tx_scale
+  states:
+    _io_cache: '(''Contest TX: file/framing/FEC/mod/RRC'', ''blk'', [(''role'', "''sim''"),
+      (''input_path'', "''input_payload.bin''"), (''manifest_path'', "''tx_manifest.json''"),
+      (''modulation'', "''bpsk''"), (''fec_mode'', "''convolutional''"), (''samp_rate'',
+      ''2000000''), (''samples_per_symbol'', ''8''), (''rolloff'', ''0.35''), (''span'',
+      ''6''), (''block_size'', ''256''), (''preamble_symbols'', ''64''), (''guard_symbols'',
+      ''16''), (''seed'', ''42''), (''tx_scale'', ''0.5'')], [], [(''0'', ''complex'',
+      1)], "Finite file-to-IQ source using the repository''s tested PHY protocol.",
+      [''block_size'', ''fec_mode'', ''guard_symbols'', ''input_path'', ''manifest_path'',
+      ''modulation'', ''preamble_symbols'', ''role'', ''rolloff'', ''samp_rate'',
+      ''samples_per_symbol'', ''seed'', ''span'', ''tx_scale''])'
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 596.0]
+    rotation: 0
+    state: enabled
+- name: interference_impairments
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\n\n\nclass blk(gr.sync_block):\n\
+      \    \"\"\"Stateful tone/burst interference, IQ imbalance, DC and clipping.\"\
+      \"\"\n\n    def __init__(self, role=\"sim\", samp_rate=2000000, reference_amplitude=0.5,\n\
+      \                 tone_inr_db=-120.0, tone_offset_hz=100000.0,\n           \
+      \      burst_probability=0.0, burst_inr_db=10.0,\n                 clipping_threshold=0.95,\
+      \ iq_gain_db=0.0,\n                 iq_phase_deg=0.0, dc_real=0.0, dc_imag=0.0,\
+      \ seed=42):\n        gr.sync_block.__init__(\n            self, name=\"Contest\
+      \ Channel: interference/IQ/clipping\",\n            in_sig=[np.complex64], out_sig=[np.complex64])\n\
+      \        self.role = str(role)\n        self.samp_rate = float(samp_rate)\n\
+      \        self.reference_amplitude = float(reference_amplitude)\n        self.tone_inr_db\
+      \ = float(tone_inr_db)\n        self.tone_offset_hz = float(tone_offset_hz)\n\
+      \        self.burst_probability = float(burst_probability)\n        self.burst_inr_db\
+      \ = float(burst_inr_db)\n        self.clipping_threshold = float(clipping_threshold)\n\
+      \        self.iq_gain_db = float(iq_gain_db)\n        self.iq_phase_deg = float(iq_phase_deg)\n\
+      \        self.dc_real = float(dc_real)\n        self.dc_imag = float(dc_imag)\n\
+      \        self.seed = int(seed)\n        self._rng = np.random.default_rng(self.seed)\n\
+      \        self._sample_index = 0\n\n    def start(self):\n        if not (0.0\
+      \ <= self.burst_probability <= 1.0):\n            raise ValueError(\"burst_probability\
+      \ must be in [0,1]\")\n        if self.samp_rate <= 0:\n            raise ValueError(\"\
+      samp_rate must be positive\")\n        self._rng = np.random.default_rng(self.seed)\n\
+      \        self._sample_index = 0\n        return True\n\n    def work(self, input_items,\
+      \ output_items):\n        x = np.asarray(input_items[0], dtype=np.complex64)\n\
+      \        y = x.astype(np.complex128, copy=True)\n        n = len(y)\n      \
+      \  if self.role == \"sim\" and n:\n            if self.tone_inr_db > -100.0:\n\
+      \                idx = self._sample_index + np.arange(n, dtype=np.float64)\n\
+      \                amp = self.reference_amplitude * 10.0 ** (self.tone_inr_db\
+      \ / 20.0)\n                y += amp * np.exp(1j * 2.0 * np.pi * self.tone_offset_hz\
+      \ * idx / self.samp_rate)\n            if self.burst_probability > 0.0:\n  \
+      \              mask = self._rng.random(n) < self.burst_probability\n       \
+      \         count = int(np.count_nonzero(mask))\n                if count:\n \
+      \                   amp = self.reference_amplitude * 10.0 ** (self.burst_inr_db\
+      \ / 20.0)\n                    noise = (self._rng.standard_normal(count) +\n\
+      \                             1j * self._rng.standard_normal(count)) / np.sqrt(2.0)\n\
+      \                    y[mask] += amp * noise\n            if self.iq_gain_db\
+      \ != 0.0 or self.iq_phase_deg != 0.0:\n                gain = 10.0 ** (self.iq_gain_db\
+      \ / 20.0)\n                phase = np.deg2rad(self.iq_phase_deg)\n         \
+      \       i = np.real(y) * gain\n                q = np.imag(y) / max(gain, 1e-12)\n\
+      \                y = (i * np.cos(phase) - q * np.sin(phase) +\n            \
+      \         1j * (i * np.sin(phase) + q * np.cos(phase)))\n            y += complex(self.dc_real,\
+      \ self.dc_imag)\n            if self.clipping_threshold > 0.0:\n           \
+      \     mag = np.abs(y)\n                over = mag > self.clipping_threshold\n\
+      \                y[over] *= self.clipping_threshold / mag[over]\n        output_items[0][:n]\
+      \ = y.astype(np.complex64)\n        self._sample_index += n\n        return\
+      \ n\n"
+    affinity: ''
+    alias: ''
+    burst_inr_db: burst_inr_db
+    burst_probability: burst_probability
+    clipping_threshold: clipping_threshold
+    comment: ''
+    dc_imag: '0.0'
+    dc_real: '0.0'
+    iq_gain_db: '0.0'
+    iq_phase_deg: '0.0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    reference_amplitude: tx_scale
+    role: role
+    samp_rate: samp_rate
+    seed: seed
+    tone_inr_db: tone_inr_db
+    tone_offset_hz: tone_offset_hz
+  states:
+    _io_cache: '(''Contest Channel: interference/IQ/clipping'', ''blk'', [(''role'',
+      "''sim''"), (''samp_rate'', ''2000000''), (''reference_amplitude'', ''0.5''),
+      (''tone_inr_db'', ''-120.0''), (''tone_offset_hz'', ''100000.0''), (''burst_probability'',
+      ''0.0''), (''burst_inr_db'', ''10.0''), (''clipping_threshold'', ''0.95''),
+      (''iq_gain_db'', ''0.0''), (''iq_phase_deg'', ''0.0''), (''dc_real'', ''0.0''),
+      (''dc_imag'', ''0.0''), (''seed'', ''42'')], [(''0'', ''complex'', 1)], [(''0'',
+      ''complex'', 1)], ''Stateful tone/burst interference, IQ imbalance, DC and clipping.'',
+      [''burst_inr_db'', ''burst_probability'', ''clipping_threshold'', ''dc_imag'',
+      ''dc_real'', ''iq_gain_db'', ''iq_phase_deg'', ''reference_amplitude'', ''role'',
+      ''samp_rate'', ''seed'', ''tone_inr_db'', ''tone_offset_hz''])'
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [744, 784.0]
+    rotation: 0
+    state: enabled
+- name: note_external_rx
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "RX \u8F93\u5165\uFF1Arole=replay \u8BFB\u53D6 complex64\uFF1Brole=rx \u53EA\
+      \u8BFB pyadi-iio\uFF1Bsim/tx \u65F6\u7ACB\u5373\u7ED3\u675F\u4E14\u4E0D\u6253\
+      \u5F00\u786C\u4EF6\u3002"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 972.0]
+    rotation: 0
+    state: enabled
+- name: note_rf_tx
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "\u771F\u5B9E TX\uFF1A\u4EC5 role=tx \u4E14 rf_enable\u3001rules_confirmed\u3001\
+      physical_path_confirmed\u3001contest_rules.yaml \u5168\u90E8\u901A\u8FC7\u540E\
+      \u624D\u6253\u5F00\u8BBE\u5907\uFF1B\u6C38\u4E0D cyclic\uFF0Cstop() \u603B\u662F\
+      \u9500\u6BC1 TX buffer\u3002"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1624, 124.0]
+    rotation: 0
+    state: enabled
+- name: note_rx
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "RX: \u5E27\u957F tag \u5FEB\u901F\u8DEF\u5F84\uFF1B\u786C\u4EF6/IQ \u56DE\
+      \u653E\u65E0 tag \u65F6\u505A\u524D\u5BFC\u76F8\u5173\u641C\u7D22\u3002\u5934\
+      \ CRC \u4E0E payload CRC \u5931\u8D25\u5747\u4E0D\u5199\u5165\u6700\u7EC8\u6587\
+      \u4EF6\u3002"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1624, 12.0]
+    rotation: 0
+    state: enabled
+- name: note_tx
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "TX: \u6587\u4EF6 -> \u5206\u5757/\u5E8F\u53F7/\u5934 CRC -> payload CRC\
+      \ -> \u5377\u79EF FEC -> BPSK/QPSK -> RRC -> \u6709\u9650\u6D41"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 488]
+    rotation: 0
+    state: enabled
+- name: rx_iq_capture
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: "\u539F\u59CB\u63A5\u6536 IQ\uFF0Ccomplex64 little-endian\u3002"
+    file: iq_capture_path
+    type: complex
+    unbuffered: 'False'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1952, 960.0]
+    rotation: 0
+    state: enabled
+- name: rx_selector
+  id: blocks_selector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "0=\u4EFF\u771F\u4FE1\u9053\uFF0C1=IQ \u56DE\u653E\u6216\u786C\u4EF6\
+      \ RX"
+    enabled: 'True'
+    input_index: role_index
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    num_outputs: '1'
+    output_index: '0'
+    showports: 'True'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1416, 500.0]
+    rotation: 0
+    state: enabled
+- name: tx_throttle
+  id: blocks_throttle
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "\u4EFF\u771F\u9650\u901F\uFF1B\u786C\u4EF6\u6279\u91CF TX \u4E5F\u636E\
+      \u6B64\u63A5\u6536\u6709\u9650\u6837\u672C\u3002"
+    ignoretag: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [440, 548.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [channel_model, '0', interference_impairments, '0']
+- [contest_rx_source, '0', rx_selector, '1']
+- [contest_tx_source, '0', tx_throttle, '0']
+- [interference_impairments, '0', rx_selector, '0']
+- [rx_selector, '0', contest_rx_sink, '0']
+- [rx_selector, '0', rx_iq_capture, '0']
+- [tx_throttle, '0', channel_model, '0']
+- [tx_throttle, '0', contest_pluto_tx_sink, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

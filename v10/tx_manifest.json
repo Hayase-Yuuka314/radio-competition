@@ -1,0 +1,15 @@
+{
+  "payload_utf8": "el psy kongroo",
+  "payload_hex": "656c20707379206b6f6e67726f6f",
+  "sequence": 1,
+  "sample_rate": 1000000,
+  "samples_per_chip": 4,
+  "chip_rate": 250000.0,
+  "code_length": 31,
+  "processing_gain_db": 14.913616938342727,
+  "coded_bits": 428,
+  "active_samples": 59696,
+  "cycle_samples": 84696,
+  "project_backend": true,
+  "protection": "shared-key XOR whitening + convolutional FEC + interleaving + CRC-32"
+}

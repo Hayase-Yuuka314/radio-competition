@@ -1,0 +1,28 @@
+# 团队比赛合同默认值。
+# 只允许 433 MHz 与 2.4 GHz 两个中心频率；默认工程使用 433 MHz。
+# 其余项目在 PlutoSDR 硬件能力和软件硬安全上限内不增加额外限制。
+
+rules:
+  confirmed: true
+  # TX 授权阀自身允许的最大有限时长；实际 GRC 默认仍为 5 秒。
+  contest_duration_s: 3600
+  scoring_mode: unrestricted
+
+rf:
+  # 不使用连续频段授权，只允许下面两个精确中心频率。
+  allowed_bands_hz: []
+  allowed_center_frequencies_hz:
+    - 433000000
+    - 2400000000
+  # PlutoSDR 原生 TX 块的硬件带宽上限；当前工程默认仅使用 1 MHz。
+  max_occupied_bandwidth_hz: 40000000
+  # 主办方未另设功率上限；实际输出仍由 Pluto 硬件和 TX 衰减控制。
+  max_tx_power_dbm: null
+  # 0 dB 表示不额外限制 Pluto 的硬件最大 TX 增益。
+  max_tx_gain_db: 0.0
+
+hardware:
+  device_model: NanoSDR_Pluto_compatible
+  # 单设备时自动选择 USB context；多设备时应改成精确 URI/序列号。
+  tx_uri: "usb:"
+  rx_uri: "usb:"

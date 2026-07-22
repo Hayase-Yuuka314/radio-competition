@@ -1,0 +1,772 @@
+options:
+  parameters:
+    author: Competition Team
+    catch_exceptions: 'True'
+    category: '[SDR Contest]'
+    cmake_opt: ''
+    comment: 独立发射端。默认占位源�?RF 门关闭；不含仿真信道�?
+    copyright: '2026'
+    description: 占位信号/竞赛文件接口 -> 有限样本与授权门 -> 原生 PlutoSDR Sink
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: sdr_contest_tx_pluto
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: SDR Contest PlutoSDR Transmitter
+    window_size: (1450,900)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: input_mode
+  id: variable
+  parameters:
+    comment: placeholder | contest_file；开赛后切换�?contest_file
+    value: '''placeholder'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 16
+    - 12
+    rotation: 0
+    state: enabled
+- name: input_mode_index
+  id: variable
+  parameters:
+    comment: 0=默认占位信号�?=竞赛文件协议波形
+    value: 0 if input_mode == 'placeholder' else 1
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 216
+    - 12
+    rotation: 0
+    state: enabled
+- name: input_path
+  id: variable
+  parameters:
+    comment: 开赛后由组委会提供的待发送文件接�?
+    value: '''input_payload.bin'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 448
+    - 12
+    rotation: 0
+    state: enabled
+- name: tx_manifest_path
+  id: variable
+  parameters:
+    comment: 竞赛文件分帧与哈希清�?
+    value: '''tx_manifest.json'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 664
+    - 12
+    rotation: 0
+    state: enabled
+- name: placeholder_frequency_hz
+  id: variable
+  parameters:
+    comment: 默认复基带占位正弦频�?
+    value: '100000.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 888
+    - 12
+    rotation: 0
+    state: enabled
+- name: placeholder_amplitude
+  id: variable
+  parameters:
+    comment: 占位信号幅度；授权前不会通过 TX �?
+    value: '0.10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1088
+    - 12
+    rotation: 0
+    state: enabled
+- name: modulation
+  id: variable
+  parameters:
+    comment: bpsk | qpsk
+    value: '''bpsk'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 16
+    - 104
+    rotation: 0
+    state: enabled
+- name: fec_mode
+  id: variable
+  parameters:
+    comment: none | convolutional
+    value: '''convolutional'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 144
+    - 104
+    rotation: 0
+    state: enabled
+- name: block_size
+  id: variable
+  parameters:
+    comment: 竞赛文件分块字节�?
+    value: '256'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 312
+    - 104
+    rotation: 0
+    state: enabled
+- name: samples_per_symbol
+  id: variable
+  parameters:
+    comment: 每符号采样数
+    value: '8'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 440
+    - 104
+    rotation: 0
+    state: enabled
+- name: rrc_rolloff
+  id: variable
+  parameters:
+    comment: RRC 滚降系数
+    value: '0.35'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 592
+    - 104
+    rotation: 0
+    state: enabled
+- name: rrc_span
+  id: variable
+  parameters:
+    comment: RRC 单侧跨度
+    value: '6'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 720
+    - 104
+    rotation: 0
+    state: enabled
+- name: preamble_symbols
+  id: variable
+  parameters:
+    comment: 协议 v1 固定前导符号�?
+    value: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 832
+    - 104
+    rotation: 0
+    state: enabled
+- name: guard_symbols
+  id: variable
+  parameters:
+    comment: 帧首尾保护符号数
+    value: '16'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 992
+    - 104
+    rotation: 0
+    state: enabled
+- name: seed
+  id: variable
+  parameters:
+    comment: 协议确定性种�?
+    value: '42'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1136
+    - 104
+    rotation: 0
+    state: enabled
+- name: tx_scale
+  id: variable
+  parameters:
+    comment: 竞赛波形峰值缩�?
+    value: '0.5'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1232
+    - 104
+    rotation: 0
+    state: enabled
+- name: device_uri
+  id: variable
+  parameters:
+    comment: 必须改为已验证的 Pluto/NanoSDR URI
+    value: '''usb:2.10.5'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 16
+    - 196
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: 复基带采样率
+    value: '2000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 224
+    - 196
+    rotation: 0
+    state: enabled
+- name: center_frequency_hz
+  id: variable
+  parameters:
+    comment: 示例值；真实 TX 必须同时写入已确认赛�?
+    value: '2400000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 352
+    - 196
+    rotation: 0
+    state: enabled
+- name: rf_bandwidth_hz
+  id: variable
+  parameters:
+    comment: Pluto TX RF 带宽
+    value: '1000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 560
+    - 196
+    rotation: 0
+    state: enabled
+- name: tx_buffer_samples
+  id: variable
+  parameters:
+    comment: Pluto TX 缓冲区样本数
+    value: '32768'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 712
+    - 196
+    rotation: 0
+    state: enabled
+- name: tx_attenuation_db
+  id: variable
+  parameters:
+    comment: 原生 Pluto 块使用正衰减值；89.75 dB 为最低输�?
+    value: '89.75'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 880
+    - 196
+    rotation: 0
+    state: enabled
+- name: rf_duration_s
+  id: variable
+  parameters:
+    comment: 有限发射时长
+    value: '5.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1088
+    - 196
+    rotation: 0
+    state: enabled
+- name: max_tx_samples
+  id: variable
+  parameters:
+    comment: 硬上限，禁止无限 TX
+    value: min(int(rf_duration_s*samp_rate), 10000000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1216
+    - 196
+    rotation: 0
+    state: enabled
+- name: rf_enable
+  id: variable
+  parameters:
+    comment: �?RF 发射开关，默认关闭
+    value: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 16
+    - 288
+    rotation: 0
+    state: enabled
+- name: rules_confirmed
+  id: variable
+  parameters:
+    comment: 完整赛规已确�?
+    value: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 144
+    - 288
+    rotation: 0
+    state: enabled
+- name: physical_path_confirmed
+  id: variable
+  parameters:
+    comment: 天线/滤波�?衰减与端口已核对
+    value: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 304
+    - 288
+    rotation: 0
+    state: enabled
+- name: rules_path
+  id: variable
+  parameters:
+    comment: 授权频率、带宽和时长约束
+    value: '''contest_rules.yaml'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 528
+    - 288
+    rotation: 0
+    state: enabled
+- name: placeholder_source
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: 默认占位复基带信号；通过 input_mode 切换�?
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    amp: placeholder_amplitude
+    freq: placeholder_frequency_hz
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    showports: 'False'
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 24
+    - 508
+    rotation: 0
+    state: enabled
+- name: contest_tx_source
+  id: epy_block
+  parameters:
+    _source_code: "import hashlib\nimport json\nimport os\nfrom pathlib import Path\n\nimport numpy as\
+      \ np\nimport pmt\nfrom gnuradio import gr\n\n\nclass blk(gr.sync_block):\n    \"\"\"Finite file-to-IQ\
+      \ source using the repository's tested PHY protocol.\"\"\"\n\n    def __init__(self, role=\"sim\"\
+      , input_path=\"input_payload.bin\",\n                 manifest_path=\"tx_manifest.json\", modulation=\"\
+      bpsk\",\n                 fec_mode=\"convolutional\", samp_rate=2000000,\n                 samples_per_symbol=8,\
+      \ rolloff=0.35, span=6,\n                 block_size=256, preamble_symbols=64, guard_symbols=16,\n\
+      \                 seed=42, tx_scale=0.5):\n        gr.sync_block.__init__(\n            self, name=\"\
+      Contest TX: file/framing/FEC/mod/RRC\",\n            in_sig=None, out_sig=[np.complex64])\n    \
+      \    self.role = str(role)\n        self.input_path = str(input_path)\n        self.manifest_path\
+      \ = str(manifest_path)\n        self.modulation = str(modulation).lower()\n        self.fec_mode\
+      \ = str(fec_mode).lower()\n        self.samp_rate = int(samp_rate)\n        self.samples_per_symbol\
+      \ = int(samples_per_symbol)\n        self.rolloff = float(rolloff)\n        self.span = int(span)\n\
+      \        self.block_size = int(block_size)\n        self.preamble_symbols = int(preamble_symbols)\n\
+      \        self.guard_symbols = int(guard_symbols)\n        self.seed = int(seed)\n        self.tx_scale\
+      \ = float(tx_scale)\n        self._waveform = np.empty(0, dtype=np.complex64)\n        self._frames\
+      \ = []\n        self._frame_offsets = []\n        self._cursor = 0\n        self._next_tag = 0\n\
+      \n    @staticmethod\n    def _atomic_json(path, payload):\n        target = Path(path)\n       \
+      \ target.parent.mkdir(parents=True, exist_ok=True)\n        tmp = target.with_suffix(target.suffix\
+      \ + \".tmp\")\n        tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + \"\\n\"\
+      ,\n                       encoding=\"utf-8\")\n        os.replace(tmp, target)\n\n    def start(self):\n\
+      \        if self.role not in (\"sim\", \"tx\"):\n            return True\n        if self.preamble_symbols\
+      \ != 64:\n            raise ValueError(\"protocol v1 requires preamble_symbols=64\")\n        if\
+      \ self.guard_symbols < 1 or self.samples_per_symbol < 2:\n            raise ValueError(\"guard_symbols\
+      \ and samples_per_symbol are invalid\")\n        if not (0.0 < self.tx_scale <= 0.95):\n       \
+      \     raise ValueError(\"tx_scale must be in (0, 0.95]\")\n\n        from wireless_competition.common.types\
+      \ import FECType, ModulationType\n        from wireless_competition.tx.pipeline import TXPipeline\n\
+      \n        mod_map = {\"bpsk\": ModulationType.BPSK, \"qpsk\": ModulationType.QPSK}\n        fec_map\
+      \ = {\"none\": FECType.NONE, \"convolutional\": FECType.CONVOLUTIONAL}\n        if self.modulation\
+      \ not in mod_map:\n            raise ValueError(\"modulation must be bpsk or qpsk\")\n        if\
+      \ self.fec_mode not in fec_map:\n            raise ValueError(\"fec_mode must be none or convolutional\"\
+      )\n\n        source = Path(self.input_path)\n        if not source.is_file():\n            raise\
+      \ FileNotFoundError(\"input payload not found: %s\" % source)\n        data = source.read_bytes()\n\
+      \        tx = TXPipeline(\n            modulation=mod_map[self.modulation], fec_type=fec_map[self.fec_mode],\n\
+      \            samples_per_symbol=self.samples_per_symbol, rolloff=self.rolloff,\n            span=self.span,\
+      \ block_size=self.block_size,\n            preamble_length_symbols=self.preamble_symbols,\n    \
+      \        guard_length_symbols=self.guard_symbols, seed=self.seed)\n        raw_frames = tx.process_file(data)\n\
+      \        self._frames = []\n        for frame in raw_frames:\n            frame = np.asarray(frame,\
+      \ dtype=np.complex64)\n            peak = float(np.max(np.abs(frame))) if frame.size else 0.0\n\
+      \            if peak > 0.0:\n                frame = frame * np.float32(self.tx_scale / peak)\n\
+      \            self._frames.append(frame.astype(np.complex64, copy=False))\n        self._frame_offsets\
+      \ = []\n        offset = 0\n        for frame in self._frames:\n            self._frame_offsets.append((offset,\
+      \ len(frame)))\n            offset += len(frame)\n        self._waveform = (np.concatenate(self._frames)\n\
+      \                          if self._frames else np.empty(0, dtype=np.complex64))\n        self._cursor\
+      \ = 0\n        self._next_tag = 0\n        manifest = {\n            \"protocol_version\": 1,\n\
+      \            \"input_path\": str(source.resolve()),\n            \"payload_bytes\": len(data),\n\
+      \            \"payload_sha256\": hashlib.sha256(data).hexdigest(),\n            \"frame_count\"\
+      : len(self._frames),\n            \"frame_lengths_samples\": [len(f) for f in self._frames],\n \
+      \           \"sample_rate_hz\": self.samp_rate,\n            \"modulation\": self.modulation,\n\
+      \            \"fec\": self.fec_mode,\n            \"block_size_bytes\": self.block_size,\n     \
+      \       \"samples_per_symbol\": self.samples_per_symbol,\n            \"rrc_rolloff\": self.rolloff,\n\
+      \            \"rrc_span\": self.span,\n            \"preamble_symbols\": self.preamble_symbols,\n\
+      \            \"guard_symbols\": self.guard_symbols,\n            \"seed\": self.seed,\n        \
+      \    \"peak_scale\": self.tx_scale,\n        }\n        self._atomic_json(self.manifest_path, manifest)\n\
+      \        return True\n\n    def work(self, input_items, output_items):\n        if self._cursor\
+      \ >= len(self._waveform):\n            return -1\n        out = output_items[0]\n        count =\
+      \ min(len(out), len(self._waveform) - self._cursor)\n        absolute_start = int(self.nitems_written(0))\n\
+      \        absolute_end = absolute_start + count\n        while self._next_tag < len(self._frame_offsets):\n\
+      \            tag_offset, frame_len = self._frame_offsets[self._next_tag]\n            if tag_offset\
+      \ >= absolute_end:\n                break\n            if tag_offset >= absolute_start:\n      \
+      \          self.add_item_tag(0, int(tag_offset), pmt.intern(\"frame_len\"),\n                  \
+      \                pmt.from_long(int(frame_len)))\n            self._next_tag += 1\n        out[:count]\
+      \ = self._waveform[self._cursor:self._cursor + count]\n        self._cursor += count\n        return\
+      \ count\n"
+    affinity: ''
+    alias: ''
+    block_size: block_size
+    comment: 竞赛文件接口：切�?input_mode='contest_file' 后读�?input_path�?
+    fec_mode: fec_mode
+    guard_symbols: guard_symbols
+    input_path: input_path
+    manifest_path: tx_manifest_path
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modulation: modulation
+    preamble_symbols: preamble_symbols
+    role: '''sim'' if input_mode == ''contest_file'' else ''idle'''
+    rolloff: rrc_rolloff
+    samp_rate: samp_rate
+    samples_per_symbol: samples_per_symbol
+    seed: seed
+    span: rrc_span
+    tx_scale: tx_scale
+  states:
+    _io_cache: '(''Contest TX: file/framing/FEC/mod/RRC'', ''blk'', [(''role'', "''sim''"), (''input_path'',
+      "''input_payload.bin''"), (''manifest_path'', "''tx_manifest.json''"), (''modulation'', "''bpsk''"),
+      (''fec_mode'', "''convolutional''"), (''samp_rate'', ''2000000''), (''samples_per_symbol'', ''8''),
+      (''rolloff'', ''0.35''), (''span'', ''6''), (''block_size'', ''256''), (''preamble_symbols'', ''64''),
+      (''guard_symbols'', ''16''), (''seed'', ''42''), (''tx_scale'', ''0.5'')], [], [(''0'', ''complex'',
+      1)], "Finite file-to-IQ source using the repository''s tested PHY protocol.", [''block_size'', ''fec_mode'',
+      ''guard_symbols'', ''input_path'', ''manifest_path'', ''modulation'', ''preamble_symbols'', ''role'',
+      ''rolloff'', ''samp_rate'', ''samples_per_symbol'', ''seed'', ''span'', ''tx_scale''])'
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 24
+    - 652
+    rotation: 0
+    state: enabled
+- name: tx_input_selector
+  id: blocks_selector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: 0=默认占位源，1=竞赛文件协议�?
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    enabled: 'True'
+    input_index: input_mode_index
+    num_inputs: '2'
+    num_outputs: '1'
+    output_index: '0'
+    showports: 'True'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 344
+    - 568
+    rotation: 0
+    state: enabled
+- name: tx_finite_head
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: 无论输入模式如何，发射样本数均为有限值�?
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: max_tx_samples
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 568
+    - 568
+    rotation: 0
+    state: enabled
+- name: tx_authorization_gate
+  id: epy_block
+  parameters:
+    _source_code: "from pathlib import Path\n\nimport numpy as np\nimport yaml\nfrom gnuradio import gr\n\
+      \n\ndef validate_tx_configuration(rf_enable=False, rules_confirmed=False,\n                    \
+      \          physical_path_confirmed=False,\n                              rules_path=\"contest_rules.yaml\"\
+      ,\n                              center_frequency_hz=2400000000,\n                             \
+      \ rf_bandwidth_hz=1000000,\n                              rf_duration_s=5.0,\n                 \
+      \             tx_attenuation_db=89.75):\n    \"\"\"Validate before the native Pluto sink is constructed\
+      \ or scheduled.\"\"\"\n    if not (bool(rf_enable) and bool(rules_confirmed) and\n            bool(physical_path_confirmed)):\n\
+      \        raise RuntimeError(\n            \"RF TX gate closed: rf_enable, rules_confirmed and \"\
+      \n            \"physical_path_confirmed must all be true\")\n    center_frequency_hz = int(center_frequency_hz)\n\
+      \    rf_bandwidth_hz = int(rf_bandwidth_hz)\n    rf_duration_s = float(rf_duration_s)\n    tx_attenuation_db\
+      \ = float(tx_attenuation_db)\n    if center_frequency_hz <= 0:\n        raise RuntimeError(\"center_frequency_hz\
+      \ must be explicitly set\")\n    if not (0.0 < rf_duration_s <= 3600.0):\n        raise RuntimeError(\"\
+      rf_duration_s must be finite and in (0, 3600]\")\n    if not (0.0 <= tx_attenuation_db <= 89.75):\n\
+      \        raise RuntimeError(\"Pluto attenuation must be in [0, 89.75] dB\")\n\n    path = Path(str(rules_path))\n\
+      \    if not path.is_file():\n        raise RuntimeError(\"contest rule file not found: %s\" % path)\n\
+      \    cfg = yaml.safe_load(path.read_text(encoding=\"utf-8\")) or {}\n    rules = cfg.get(\"rules\"\
+      ) or {}\n    rf = cfg.get(\"rf\") or {}\n    if not bool(rules.get(\"confirmed\")):\n        raise\
+      \ RuntimeError(\"contest_rules.yaml rules.confirmed is not true\")\n\n    centers = [int(value)\
+      \ for value in\n               (rf.get(\"allowed_center_frequencies_hz\") or [])]\n    bands = rf.get(\"\
+      allowed_bands_hz\") or []\n    permitted = center_frequency_hz in centers\n    permitted = permitted\
+      \ or any(\n        int(low) <= center_frequency_hz <= int(high)\n        for low, high in bands)\n\
+      \    if not permitted:\n        raise RuntimeError(\"center frequency is not explicitly authorized\"\
+      )\n\n    max_bw = rf.get(\"max_occupied_bandwidth_hz\")\n    if max_bw is None or rf_bandwidth_hz\
+      \ > int(max_bw):\n        raise RuntimeError(\"RF bandwidth is unknown or exceeds constraints\"\
+      )\n    max_duration = rules.get(\"contest_duration_s\")\n    if max_duration is None or rf_duration_s\
+      \ > float(max_duration):\n        raise RuntimeError(\"TX duration is unknown or exceeds contest\
+      \ duration\")\n    return True\n\n\nclass blk(gr.sync_block):\n    \"\"\"Fail-closed contest-rule\
+      \ gate placed immediately before PlutoSDR Sink.\"\"\"\n\n    def __init__(self, rf_enable=False,\
+      \ rules_confirmed=False,\n                 physical_path_confirmed=False,\n                 rules_path=\"\
+      contest_rules.yaml\",\n                 center_frequency_hz=2400000000,\n                 rf_bandwidth_hz=1000000,\n\
+      \                 rf_duration_s=5.0,\n                 tx_attenuation_db=89.75):\n        gr.sync_block.__init__(\n\
+      \            self, name=\"TX authorization gate (fail closed)\",\n            in_sig=[np.complex64],\
+      \ out_sig=[np.complex64])\n        self.rf_enable = bool(rf_enable)\n        self.rules_confirmed\
+      \ = bool(rules_confirmed)\n        self.physical_path_confirmed = bool(physical_path_confirmed)\n\
+      \        self.rules_path = str(rules_path)\n        self.center_frequency_hz = int(center_frequency_hz)\n\
+      \        self.rf_bandwidth_hz = int(rf_bandwidth_hz)\n        self.rf_duration_s = float(rf_duration_s)\n\
+      \        self.tx_attenuation_db = float(tx_attenuation_db)\n\n    def start(self):\n        return\
+      \ validate_tx_configuration(\n            rf_enable=self.rf_enable,\n            rules_confirmed=self.rules_confirmed,\n\
+      \            physical_path_confirmed=self.physical_path_confirmed,\n            rules_path=self.rules_path,\n\
+      \            center_frequency_hz=self.center_frequency_hz,\n            rf_bandwidth_hz=self.rf_bandwidth_hz,\n\
+      \            rf_duration_s=self.rf_duration_s,\n            tx_attenuation_db=self.tx_attenuation_db,\n\
+      \        )\n\n    def work(self, input_items, output_items):\n        source = input_items[0]\n\
+      \        output_items[0][:len(source)] = source\n        return len(source)\n"
+    affinity: ''
+    alias: ''
+    comment: 三重人工确认 + contest_rules.yaml 约束；默认拒绝流�?
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    center_frequency_hz: center_frequency_hz
+    physical_path_confirmed: physical_path_confirmed
+    rf_bandwidth_hz: rf_bandwidth_hz
+    rf_duration_s: rf_duration_s
+    rf_enable: rf_enable
+    rules_confirmed: rules_confirmed
+    rules_path: rules_path
+    tx_attenuation_db: tx_attenuation_db
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 776
+    - 556
+    rotation: 0
+    state: enabled
+- name: tx_preflight
+  id: snippet
+  parameters:
+    section: init_before_blocks
+    priority: '0'
+    code: "tx_authorization_gate.validate_tx_configuration(\n    rf_enable=self.rf_enable,\n    rules_confirmed=self.rules_confirmed,\n\
+      \    physical_path_confirmed=self.physical_path_confirmed,\n    rules_path=self.rules_path,\n  \
+      \  center_frequency_hz=self.center_frequency_hz,\n    rf_bandwidth_hz=self.rf_bandwidth_hz,\n  \
+      \  rf_duration_s=self.rf_duration_s,\n    tx_attenuation_db=self.tx_attenuation_db,\n)"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1008
+    - 376
+    rotation: 0
+    state: enabled
+- name: pluto_tx_sink
+  id: iio_pluto_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: GNU Radio gr-iio 原生 PlutoSDR Sink；非循环发送�?
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    attenuation1: tx_attenuation_db
+    bandwidth: rf_bandwidth_hz
+    buffer_size: tx_buffer_samples
+    cyclic: 'False'
+    filter: ''''''
+    filter_source: '''Auto'''
+    fpass: '0'
+    frequency: center_frequency_hz
+    fstop: '0'
+    len_tag_key: ''''''
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 1080
+    - 568
+    rotation: 0
+    state: enabled
+- name: note_input_interface
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: 默认 input_mode='placeholder' 使用复数正弦占位。开赛后�?input_mode 改为 'contest_file'，并�?input_path 指向组委会文件；分帧/FEC/调制/RRC
+      保持不变�?
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 24
+    - 388
+    rotation: 0
+    state: enabled
+- name: note_tx_safety
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: 真实发射前必须先修复 IIO 设备发现，并确认赛规、频率、带宽、功率、天�?滤波器或有线衰减。仅当三个布尔门�?contest_rules.yaml 同时通过时才允许样本进入 PlutoSDR
+      Sink；cyclic 永远关闭�?
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate:
+    - 720
+    - 376
+    rotation: 0
+    state: enabled
+connections:
+- - placeholder_source
+  - '0'
+  - tx_input_selector
+  - '0'
+- - contest_tx_source
+  - '0'
+  - tx_input_selector
+  - '1'
+- - tx_input_selector
+  - '0'
+  - tx_finite_head
+  - '0'
+- - tx_finite_head
+  - '0'
+  - tx_authorization_gate
+  - '0'
+- - tx_authorization_gate
+  - '0'
+  - pluto_tx_sink
+  - '0'
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
