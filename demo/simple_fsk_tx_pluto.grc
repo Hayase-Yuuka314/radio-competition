@@ -1,0 +1,827 @@
+options:
+  parameters:
+    author: OpenAI Codex
+    catch_exceptions: 'True'
+    category: '[Learning Demo]'
+    cmake_opt: ''
+    comment: "\u81EA\u5305\u542B\u7684 PlutoSDR 2-FSK \u6587\u672C\u53D1\u5C04\u5B66\
+      \u4E60\u6D41\u56FE"
+    copyright: '2026'
+    description: "\u53CD\u590D\u53D1\u9001 el psy kongroo\uFF1B\u65E0\u5916\u90E8\
+      \ Python \u6587\u4EF6\u4F9D\u8D56"
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: simple_fsk_tx_pluto
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Simple 2-FSK Text TX with PlutoSDR
+    window_size: (1320,760)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: amplitude
+  id: variable
+  parameters:
+    comment: "\u590D\u57FA\u5E26\u5E45\u5EA6"
+    value: '0.25'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [392, 112]
+    rotation: 0
+    state: enabled
+- name: capture_samples
+  id: variable
+  parameters:
+    comment: "\u6709\u9650\u91C7\u96C6\u6837\u672C\u6570"
+    value: int(capture_seconds*samp_rate)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1624, 160.0]
+    rotation: 0
+    state: enabled
+- name: capture_seconds
+  id: variable
+  parameters:
+    comment: "\u91C7\u96C6\u65F6\u95F4\uFF0C\u7ED3\u675F\u540E\u81EA\u52A8\u9000\u51FA"
+    value: '15.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1472, 160.0]
+    rotation: 0
+    state: enabled
+- name: center_frequency_hz
+  id: variable
+  parameters:
+    comment: "TX/RX \u5FC5\u987B\u76F8\u540C\uFF0C\u5E76\u7B26\u5408\u5F53\u5730\u89C4\
+      \u5B9A"
+    value: '2400000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [432, 16]
+    rotation: 0
+    state: enabled
+- name: center_frequency_hz_0
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u4E0E TX \u76F8\u540C"
+    value: '2400000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1864, 48.0]
+    rotation: 0
+    state: enabled
+- name: deviation_hz
+  id: variable
+  parameters:
+    comment: "bit 0=-75 kHz\uFF0Cbit 1=+75 kHz"
+    value: '75000.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 112]
+    rotation: 0
+    state: enabled
+- name: deviation_hz_0
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u4E0E TX \u76F8\u540C"
+    value: '75000.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1296, 160.0]
+    rotation: 0
+    state: enabled
+- name: device_uri
+  id: variable
+  parameters:
+    comment: "\u7528 iio_info -S \u67E5\u5230\u7684 TX Pluto URI"
+    value: '''usb:1.3.5'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1032, 16.0]
+    rotation: 0
+    state: enabled
+- name: device_uri_0
+  id: variable
+  parameters:
+    comment: "\u7528 iio_info -S \u67E5\u5230\u7684 RX Pluto URI"
+    value: '''ip:192.168.2.1'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1224, 40.0]
+    rotation: 0
+    state: enabled
+- name: gap_samples
+  id: variable
+  parameters:
+    comment: "\u6BCF\u4E2A\u6570\u636E\u5305\u524D 20 ms \u9759\u9ED8\uFF0C\u7528\u4E8E\
+      \u627E\u5305\u5934"
+    value: '20000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [536, 112]
+    rotation: 0
+    state: enabled
+- name: message
+  id: variable
+  parameters:
+    comment: "\u8981\u53D1\u9001\u7684 UTF-8 \u6587\u672C\uFF0C\u6700\u591A 64 \u5B57\
+      \u8282"
+    value: '''ama-10 revives'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 16]
+    rotation: 0
+    state: enabled
+- name: output_status_path
+  id: variable
+  parameters:
+    comment: "\u63A5\u6536\u72B6\u6001\u548C\u6D4B\u5F97\u9891\u504F"
+    value: '''rx_status.json'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1312, 256.0]
+    rotation: 0
+    state: enabled
+- name: output_text_path
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u5199\u6210\u5E26\u82F1\u6587\u5F15\u53F7\u7684 Python\
+      \ \u8DEF\u5F84\uFF1B\u63A8\u8350\u4F7F\u7528\u6B63\u659C\u6760"
+    value: '''received_text.txt'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1088, 256.0]
+    rotation: 0
+    state: enabled
+- name: rf_bandwidth_hz
+  id: variable
+  parameters:
+    comment: "Pluto \u6A21\u62DF\u6EE4\u6CE2\u5668\u5E26\u5BBD"
+    value: '800000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [800, 16]
+    rotation: 0
+    state: enabled
+- name: rf_bandwidth_hz_0
+  id: variable
+  parameters:
+    comment: "Pluto \u6A21\u62DF\u6EE4\u6CE2\u5668\u5E26\u5BBD"
+    value: '800000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1656, 64.0]
+    rotation: 0
+    state: enabled
+- name: rx_buffer_samples
+  id: variable
+  parameters:
+    comment: "Pluto RX \u7F13\u51B2\u533A"
+    value: '32768'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1960, 160.0]
+    rotation: 0
+    state: enabled
+- name: rx_gain_db
+  id: variable
+  parameters:
+    comment: "\u624B\u52A8\u63A5\u6536\u589E\u76CA"
+    value: '35.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1816, 160.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: "Pluto \u57FA\u5E26\u91C7\u6837\u7387"
+    value: '1000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 16]
+    rotation: 0
+    state: enabled
+- name: samp_rate_0
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u4E0E TX \u76F8\u540C"
+    value: '1000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1496, 64.0]
+    rotation: 0
+    state: enabled
+- name: samples_per_symbol
+  id: variable
+  parameters:
+    comment: "100 \u70B9/\u7B26\u53F7\uFF0C\u5BF9\u5E94 10 kbit/s"
+    value: '100'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 112]
+    rotation: 0
+    state: enabled
+- name: samples_per_symbol_0
+  id: variable
+  parameters:
+    comment: "\u5FC5\u987B\u4E0E TX \u76F8\u540C"
+    value: '100'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1088, 160.0]
+    rotation: 0
+    state: enabled
+- name: tx_attenuation_db
+  id: variable
+  parameters:
+    comment: "Pluto \u8870\u51CF\u91CF\uFF1B89.75 \u6700\u5F31\uFF0C\u9996\u6B21\u6D4B\
+      \u8BD5\u5EFA\u8BAE 70"
+    value: '10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [704, 112]
+    rotation: 0
+    state: enabled
+- name: tx_buffer_samples
+  id: variable
+  parameters:
+    comment: "Pluto TX \u7F13\u51B2\u533A"
+    value: '32768'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [904, 112]
+    rotation: 0
+    state: enabled
+- name: analog_sig_source_x_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '0'
+    comment: ''
+    freq: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0.5'
+    phase: '0'
+    samp_rate: samp_rate
+    showports: 'False'
+    type: complex
+    waveform: analog.GR_CONST_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [488, 664.0]
+    rotation: 0
+    state: disabled
+- name: finite_capture
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "15 \u79D2\u540E\u81EA\u52A8\u7ED3\u675F"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: capture_samples
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1528, 660.0]
+    rotation: 0
+    state: enabled
+- name: note_chain
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "\u5B66\u4E60\u94FE\u8DEF\uFF1Ael psy kongroo \u2192 \u957F\u5EA6/CRC \u2192\
+      \ 2-FSK\uFF08\xB175 kHz\uFF09\u2192 PlutoSDR\u3002\u6CA1\u6709\u52A0\u5BC6\u3001\
+      FEC\u3001DSSS \u6216\u6BD4\u8D5B\u6297\u5E72\u6270\u903B\u8F91\u3002"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [88, 732.0]
+    rotation: 0
+    state: enabled
+- name: note_safety
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "\u5B89\u5168\uFF1A\u6709\u7EBF\u8FDE\u63A5\u5FC5\u987B\u4E32\u8054 30\u2013\
+      60 dB \u5408\u9002\u7684\u5C04\u9891\u8870\u51CF\u5668\uFF1B\u65E0\u7EBF\u53D1\
+      \u5C04\u9700\u786E\u8BA4\u5F53\u5730\u6CD5\u89C4\u3002"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [72, 860.0]
+    rotation: 0
+    state: enabled
+- name: pluto_rx_source
+  id: iio_pluto_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: rf_bandwidth_hz
+    bbdc: 'True'
+    buffer_size: rx_buffer_samples
+    comment: "PlutoSDR \u63A5\u6536\u7AEF"
+    filter: ''''''
+    filter_source: '''Auto'''
+    fpass: '0'
+    frequency: center_frequency_hz
+    fstop: '0'
+    gain1: '''manual'''
+    len_tag_key: ''''''
+    manual_gain1: rx_gain_db
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rfdc: 'True'
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1104, 480.0]
+    rotation: 0
+    state: enabled
+- name: pluto_tx_sink
+  id: iio_pluto_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    attenuation1: tx_attenuation_db
+    bandwidth: rf_bandwidth_hz
+    buffer_size: tx_buffer_samples
+    comment: "PlutoSDR \u53D1\u5C04\u7AEF"
+    cyclic: 'False'
+    filter: ''''''
+    filter_source: '''Auto'''
+    fpass: '0'
+    frequency: center_frequency_hz
+    fstop: '0'
+    len_tag_key: ''''''
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [824, 360]
+    rotation: 0
+    state: enabled
+- name: qtgui_freq_sink_x_0
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'False'
+    fc: center_frequency_hz
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label: Relative Gain
+    label1: ''
+    label10: ''''''
+    label2: ''''''
+    label3: ''''''
+    label4: ''''''
+    label5: ''''''
+    label6: ''''''
+    label7: ''''''
+    label8: ''''''
+    label9: ''''''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '1'
+    norm_window: 'False'
+    showports: 'False'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    ymax: '10'
+    ymin: '-140'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1528, 756.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_time_sink_x_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'False'
+    entags: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label1: Signal 1
+    label10: Signal 10
+    label2: Signal 2
+    label3: Signal 3
+    label4: Signal 4
+    label5: Signal 5
+    label6: Signal 6
+    label7: Signal 7
+    label8: Signal 8
+    label9: Signal 9
+    legend: 'True'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '""'
+    nconnections: '1'
+    size: '1024'
+    srate: samp_rate
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: complex
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Amplitude
+    ymax: '1'
+    ymin: '-1'
+    yunit: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1536, 948.0]
+    rotation: 0
+    state: enabled
+- name: simple_fsk_packet_receiver
+  id: epy_block
+  parameters:
+    _source_code: "import json\nfrom pathlib import Path\nimport struct\nimport zlib\n\
+      import numpy as np\nfrom gnuradio import gr\n\nPREAMBLE_BITS = 64\nSYNC_BYTES\
+      \ = bytes.fromhex(\"DDAA55D3\")\nSYNC_BITS = np.unpackbits(np.frombuffer(SYNC_BYTES,\
+      \ dtype=np.uint8), bitorder=\"big\")\nPREAMBLE = (np.arange(PREAMBLE_BITS, dtype=np.uint8)\
+      \ & 1)\nMAX_PAYLOAD_BYTES = 64\n\n\ndef _symbol_averages(prefix, start, count,\
+      \ samples_per_symbol):\n    guard = max(4, int(0.20 * samples_per_symbol))\n\
+      \    numbers = np.arange(count, dtype=np.int64)\n    begins = start + numbers\
+      \ * samples_per_symbol + guard\n    ends = start + (numbers + 1) * samples_per_symbol\
+      \ - guard\n    if begins[0] < 0 or ends[-1] >= len(prefix):\n        return\
+      \ None\n    return (prefix[ends] - prefix[begins]) / (ends - begins)\n\n\nclass\
+      \ blk(gr.sync_block):\n    \"\"\"Burst detector and 2-FSK text receiver with\
+      \ CRC-32 checking.\"\"\"\n\n    def __init__(self, sample_rate=1000000, samples_per_symbol=100,\n\
+      \                 deviation_hz=75000.0, output_text_path=\"received_text.txt\"\
+      ,\n                 output_status_path=\"rx_status.json\"):\n        gr.sync_block.__init__(\n\
+      \            self, name=\"Simple 2-FSK text receiver\",\n            in_sig=[np.complex64],\
+      \ out_sig=None)\n        self.sample_rate = int(sample_rate)\n        self.samples_per_symbol\
+      \ = int(samples_per_symbol)\n        self.deviation_hz = float(deviation_hz)\n\
+      \        self.output_text_path = Path(str(output_text_path))\n        self.output_status_path\
+      \ = Path(str(output_status_path))\n        self.buffer = np.empty(0, dtype=np.complex64)\n\
+      \        self.result = None\n        self.last_attempt_size = 0\n\n    def start(self):\n\
+      \        print(\"[SIMPLE RX] Waiting for a 2-FSK text packet...\")\n       \
+      \ return True\n\n    def _find_edges(self, samples):\n        power = np.abs(samples)\
+      \ ** 2\n        if len(power) < 30000:\n            return []\n        width\
+      \ = 64\n        smooth = np.convolve(power, np.ones(width) / width, mode=\"\
+      same\")\n        low = float(np.percentile(smooth, 10))\n        high = float(np.percentile(smooth,\
+      \ 90))\n        if high <= low * 1.05 + 1e-12:\n            return []\n    \
+      \    threshold = low + 0.30 * (high - low)\n        active = smooth > threshold\n\
+      \        raw = np.flatnonzero(active[1:] & ~active[:-1]) + 1\n        edges\
+      \ = []\n        for value in raw:\n            candidate = int(value + width\
+      \ // 2)\n            if not edges or candidate - edges[-1] > 12000:\n      \
+      \          edges.append(candidate)\n        return edges\n\n    def _decode_candidate(self,\
+      \ samples, rough_start):\n        instantaneous = np.angle(np.conj(samples[:-1])\
+      \ * samples[1:])\n        instantaneous *= self.sample_rate / (2.0 * np.pi)\n\
+      \        prefix = np.concatenate(([0.0], np.cumsum(instantaneous, dtype=np.float64)))\n\
+      \n        best = None\n        for adjustment in range(-96, 97):\n         \
+      \   start = int(rough_start + adjustment)\n            values = _symbol_averages(\n\
+      \                prefix, start, PREAMBLE_BITS, self.samples_per_symbol)\n  \
+      \          if values is None:\n                continue\n            zero_frequency\
+      \ = float(np.median(values[PREAMBLE == 0]))\n            one_frequency = float(np.median(values[PREAMBLE\
+      \ == 1]))\n            separation = one_frequency - zero_frequency\n       \
+      \     if separation < self.deviation_hz:\n                continue\n       \
+      \     middle = 0.5 * (zero_frequency + one_frequency)\n            decided =\
+      \ (values > middle).astype(np.uint8)\n            matches = int(np.count_nonzero(decided\
+      \ == PREAMBLE))\n            score = (matches, separation)\n            if best\
+      \ is None or score > best[0]:\n                best = (score, start, zero_frequency,\
+      \ one_frequency)\n        if best is None or best[0][0] < 60:\n            return\
+      \ None\n\n        _, start, zero_frequency, one_frequency = best\n        middle\
+      \ = 0.5 * (zero_frequency + one_frequency)\n        fixed_bits = PREAMBLE_BITS\
+      \ + len(SYNC_BITS) + 8\n        header_values = _symbol_averages(\n        \
+      \    prefix, start, fixed_bits, self.samples_per_symbol)\n        if header_values\
+      \ is None:\n            return None\n        header_bits = (header_values >\
+      \ middle).astype(np.uint8)\n        if not np.array_equal(\n               \
+      \ header_bits[PREAMBLE_BITS:PREAMBLE_BITS + len(SYNC_BITS)],\n             \
+      \   SYNC_BITS):\n            return None\n        length_first = PREAMBLE_BITS\
+      \ + len(SYNC_BITS)\n        payload_length = int(np.packbits(\n            header_bits[length_first:length_first\
+      \ + 8], bitorder=\"big\")[0])\n        if payload_length > MAX_PAYLOAD_BYTES:\n\
+      \            return None\n\n        total_bits = PREAMBLE_BITS + len(SYNC_BITS)\
+      \ + (1 + payload_length + 4) * 8\n        all_values = _symbol_averages(\n \
+      \           prefix, start, total_bits, self.samples_per_symbol)\n        if\
+      \ all_values is None:\n            return None\n        all_bits = (all_values\
+      \ > middle).astype(np.uint8)\n        data_bits = all_bits[PREAMBLE_BITS + len(SYNC_BITS):]\n\
+      \        data = np.packbits(data_bits, bitorder=\"big\").tobytes()\n       \
+      \ body = data[:1 + payload_length]\n        received_crc = struct.unpack(\"\
+      >I\", data[1 + payload_length:5 + payload_length])[0]\n        calculated_crc\
+      \ = zlib.crc32(body) & 0xFFFFFFFF\n        if received_crc != calculated_crc:\n\
+      \            return None\n        try:\n            message = body[1:].decode(\"\
+      utf-8\")\n        except UnicodeDecodeError:\n            return None\n    \
+      \    return {\n            \"status\": \"SUCCESS\",\n            \"message\"\
+      : message,\n            \"crc_ok\": True,\n            \"preamble_matches\"\
+      : int(best[0][0]),\n            \"f0_hz\": zero_frequency,\n            \"f1_hz\"\
+      : one_frequency,\n            \"estimated_cfo_hz\": middle,\n            \"\
+      estimated_deviation_hz\": 0.5 * (one_frequency - zero_frequency),\n        \
+      \    \"sample_start\": start,\n        }\n\n    def _try_decode(self):\n   \
+      \     for edge in self._find_edges(self.buffer):\n            result = self._decode_candidate(self.buffer,\
+      \ edge)\n            if result is not None:\n                return result\n\
+      \        return None\n\n    def _write_result(self, result):\n        self.output_text_path.parent.mkdir(parents=True,\
+      \ exist_ok=True)\n        self.output_status_path.parent.mkdir(parents=True,\
+      \ exist_ok=True)\n        self.output_text_path.write_text(result[\"message\"\
+      ] + \"\\n\", encoding=\"utf-8\")\n        self.output_status_path.write_text(\n\
+      \            json.dumps(result, ensure_ascii=False, indent=2) + \"\\n\", encoding=\"\
+      utf-8\")\n\n    def work(self, input_items, output_items):\n        incoming\
+      \ = np.asarray(input_items[0], dtype=np.complex64)\n        if self.result is\
+      \ None and len(incoming):\n            self.buffer = np.concatenate((self.buffer,\
+      \ incoming))\n            if len(self.buffer) >= 90000 and len(self.buffer)\
+      \ - self.last_attempt_size >= 16384:\n                self.last_attempt_size\
+      \ = len(self.buffer)\n                result = self._try_decode()\n        \
+      \        if result is not None:\n                    self.result = result\n\
+      \                    self._write_result(result)\n                    print(\"\
+      [SIMPLE RX] SUCCESS, CRC-32 passed\")\n                    print(\"[SIMPLE RX]\
+      \ Message:\", result[\"message\"])\n                    print(\"[SIMPLE RX]\
+      \ Estimated CFO: %.1f Hz\" % result[\"estimated_cfo_hz\"])\n            if len(self.buffer)\
+      \ > 400000:\n                self.buffer = self.buffer[-250000:]\n         \
+      \       self.last_attempt_size = len(self.buffer)\n        return len(incoming)\n\
+      \n    def stop(self):\n        if self.result is None:\n            status =\
+      \ {\n                \"status\": \"NO_VALID_PACKET\",\n                \"hint\"\
+      : \"Check URI, center frequency, gain, attenuation and matching FSK parameters.\"\
+      \n            }\n            self.output_status_path.parent.mkdir(parents=True,\
+      \ exist_ok=True)\n            self.output_status_path.write_text(\n        \
+      \        json.dumps(status, ensure_ascii=False, indent=2) + \"\\n\", encoding=\"\
+      utf-8\")\n            print(\"[SIMPLE RX] No CRC-valid packet found\")\n   \
+      \     return True\n"
+    affinity: ''
+    alias: ''
+    comment: "\u81EA\u5305\u542B\uFF1A\u7A81\u53D1\u68C0\u6D4B + 2-FSK \u9274\u9891\
+      \ + \u524D\u5BFC/\u540C\u6B65 + CRC-32"
+    deviation_hz: deviation_hz
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_status_path: '''C:/Users/16839/Desktop/RXSTATUS.json'''
+    output_text_path: '''C:/Users/16839/Desktop/RXTEXT.txt'''
+    sample_rate: samp_rate
+    samples_per_symbol: samples_per_symbol
+  states:
+    _io_cache: ('Simple 2-FSK text receiver', 'blk', [('sample_rate', '1000000'),
+      ('samples_per_symbol', '100'), ('deviation_hz', '75000.0'), ('output_text_path',
+      "'received_text.txt'"), ('output_status_path', "'rx_status.json'")], [('0',
+      'complex', 1)], [], 'Burst detector and 2-FSK text receiver with CRC-32 checking.',
+      ['deviation_hz', 'output_status_path', 'output_text_path', 'sample_rate', 'samples_per_symbol'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1784, 380.0]
+    rotation: 0
+    state: enabled
+- name: simple_fsk_packet_source
+  id: epy_block
+  parameters:
+    _source_code: "import struct\nimport zlib\nimport numpy as np\nfrom gnuradio import\
+      \ gr\n\nPREAMBLE_BITS = 64\nSYNC_BYTES = bytes.fromhex(\"DDAA55D3\")\nMAX_PAYLOAD_BYTES\
+      \ = 64\n\n\ndef _bytes_to_bits(data):\n    return np.unpackbits(np.frombuffer(data,\
+      \ dtype=np.uint8), bitorder=\"big\")\n\n\nclass blk(gr.sync_block):\n    \"\"\
+      \"Repeating 2-FSK packet source with preamble, length and CRC-32.\"\"\"\n\n\
+      \    def __init__(self, message=\"el psy kongroo\", sample_rate=1000000,\n \
+      \                samples_per_symbol=100, deviation_hz=75000.0,\n           \
+      \      amplitude=0.25, gap_samples=20000):\n        gr.sync_block.__init__(\n\
+      \            self, name=\"Simple 2-FSK text packet source\",\n            in_sig=None,\
+      \ out_sig=[np.complex64])\n        payload = str(message).encode(\"utf-8\")\n\
+      \        if len(payload) > MAX_PAYLOAD_BYTES:\n            raise ValueError(\"\
+      message is longer than 64 UTF-8 bytes\")\n        self.sample_rate = int(sample_rate)\n\
+      \        self.samples_per_symbol = int(samples_per_symbol)\n        self.deviation_hz\
+      \ = float(deviation_hz)\n        self.amplitude = float(amplitude)\n       \
+      \ self.gap_samples = int(gap_samples)\n        if self.samples_per_symbol <\
+      \ 8:\n            raise ValueError(\"samples_per_symbol must be at least 8\"\
+      )\n        if not (0.01 <= self.amplitude <= 0.8):\n            raise ValueError(\"\
+      amplitude must be between 0.01 and 0.8\")\n\n        preamble = (np.arange(PREAMBLE_BITS,\
+      \ dtype=np.uint8) & 1)\n        body = bytes((len(payload),)) + payload\n  \
+      \      crc = struct.pack(\">I\", zlib.crc32(body) & 0xFFFFFFFF)\n        bits\
+      \ = np.concatenate((\n            preamble,\n            _bytes_to_bits(SYNC_BYTES),\n\
+      \            _bytes_to_bits(body + crc),\n        )).astype(np.uint8)\n\n  \
+      \      symbol_frequencies = np.where(\n            bits == 0, -self.deviation_hz,\
+      \ self.deviation_hz)\n        sample_frequencies = np.repeat(\n            symbol_frequencies,\
+      \ self.samples_per_symbol)\n        phase_increment = 2.0 * np.pi * sample_frequencies\
+      \ / self.sample_rate\n        active = self.amplitude * np.exp(1j * np.cumsum(phase_increment))\n\
+      \        gap = np.zeros(self.gap_samples, dtype=np.complex64)\n        self.waveform\
+      \ = np.concatenate((gap, active.astype(np.complex64)))\n        self.position\
+      \ = 0\n        self.message = str(message)\n        self.packet_bits = len(bits)\n\
+      \n    def start(self):\n        print(\"[SIMPLE TX] Message:\", self.message)\n\
+      \        print(\"[SIMPLE TX] 2-FSK packet bits:\", self.packet_bits,\n     \
+      \         \"cycle samples:\", len(self.waveform))\n        return True\n\n \
+      \   def work(self, input_items, output_items):\n        output = output_items[0]\n\
+      \        count = len(output)\n        indices = (np.arange(count, dtype=np.int64)\
+      \ + self.position) % len(self.waveform)\n        output[:] = self.waveform[indices]\n\
+      \        self.position = int((self.position + count) % len(self.waveform))\n\
+      \        return count\n"
+    affinity: ''
+    alias: ''
+    amplitude: amplitude
+    comment: "\u81EA\u5305\u542B\uFF1A\u524D\u5BFC + \u540C\u6B65\u5B57 + \u957F\u5EA6\
+      \ + UTF-8 \u6587\u672C + CRC-32 + 2-FSK"
+    deviation_hz: deviation_hz
+    gap_samples: gap_samples
+    maxoutbuf: '0'
+    message: message
+    minoutbuf: '0'
+    sample_rate: samp_rate
+    samples_per_symbol: samples_per_symbol
+  states:
+    _io_cache: ('Simple 2-FSK text packet source', 'blk', [('message', "'el psy kongroo'"),
+      ('sample_rate', '1000000'), ('samples_per_symbol', '100'), ('deviation_hz',
+      '75000.0'), ('amplitude', '0.25'), ('gap_samples', '20000')], [], [('0', 'complex',
+      1)], 'Repeating 2-FSK packet source with preamble, length and CRC-32.', ['amplitude',
+      'deviation_hz', 'gap_samples', 'message', 'sample_rate', 'samples_per_symbol'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [128, 312.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [analog_sig_source_x_0, '0', pluto_tx_sink, '0']
+- [finite_capture, '0', simple_fsk_packet_receiver, '0']
+- [pluto_rx_source, '0', finite_capture, '0']
+- [pluto_rx_source, '0', qtgui_freq_sink_x_0, '0']
+- [pluto_rx_source, '0', qtgui_time_sink_x_0, '0']
+- [simple_fsk_packet_source, '0', pluto_tx_sink, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
