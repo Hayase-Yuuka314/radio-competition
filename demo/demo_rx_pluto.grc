@@ -1,0 +1,291 @@
+options:
+  parameters:
+    author: OpenAI Codex / wireless demo
+    catch_exceptions: 'True'
+    category: '[Demo]'
+    cmake_opt: ''
+    comment: "PlutoSDR DSSS 测试接收端；成功后写 decoded_message.txt。"
+    copyright: '2026'
+    description: "PlutoSDR -> 突发同步/CFO -> DSSS 解扩 -> 去交织/维特比 -> 解扰/CRC"
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: demo_rx_pluto
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Demo RX - DSSS protected text over PlutoSDR
+    window_size: (1350,820)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: shared_key
+  id: variable
+  parameters:
+    comment: "必须与 TX 完全相同"
+    value: "'demo-shared-key-2026'"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [16, 16], rotation: 0, state: enabled}
+- name: device_uri
+  id: variable
+  parameters:
+    comment: "RX Pluto URI"
+    value: "'ip:192.168.2.1'"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [240, 16], rotation: 0, state: enabled}
+- name: center_frequency_hz
+  id: variable
+  parameters:
+    comment: "必须与 TX 相同"
+    value: '2450000000'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [464, 16], rotation: 0, state: enabled}
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: "必须与 TX 相同"
+    value: '1000000'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [664, 16], rotation: 0, state: enabled}
+- name: rf_bandwidth_hz
+  id: variable
+  parameters:
+    comment: "Pluto 模拟基带带宽"
+    value: '800000'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [824, 16], rotation: 0, state: enabled}
+- name: samples_per_chip
+  id: variable
+  parameters:
+    comment: "必须与 TX 相同"
+    value: '4'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [16, 112], rotation: 0, state: enabled}
+- name: code_length
+  id: variable
+  parameters:
+    comment: "必须与 TX 相同"
+    value: '31'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [208, 112], rotation: 0, state: enabled}
+- name: team_id
+  id: variable
+  parameters:
+    comment: "必须与 TX 相同"
+    value: '0'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [352, 112], rotation: 0, state: enabled}
+- name: expected_sequence
+  id: variable
+  parameters:
+    comment: "当前协议保留字段；接收端会报告实际包序号"
+    value: '1'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [480, 112], rotation: 0, state: enabled}
+- name: capture_seconds
+  id: variable
+  parameters:
+    comment: "自动采集时长；先启动 RX，再在此时间内启动 TX"
+    value: '15.0'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [664, 112], rotation: 0, state: enabled}
+- name: capture_samples
+  id: variable
+  parameters:
+    comment: "有限采集，时间到后自动退出"
+    value: int(capture_seconds*samp_rate)
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [824, 112], rotation: 0, state: enabled}
+- name: rx_gain_db
+  id: variable
+  parameters:
+    comment: "手动 RX 增益，常用 20–50 dB"
+    value: '35.0'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [1024, 112], rotation: 0, state: enabled}
+- name: rx_buffer_samples
+  id: variable
+  parameters:
+    comment: "Pluto RX 缓冲区"
+    value: '32768'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [1168, 112], rotation: 0, state: enabled}
+- name: output_text_path
+  id: variable
+  parameters:
+    comment: "成功解码的明文"
+    value: "'decoded_message.txt'"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [16, 208], rotation: 0, state: enabled}
+- name: output_json_path
+  id: variable
+  parameters:
+    comment: "同步、频偏、CRC 等状态"
+    value: "'rx_status.json'"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [240, 208], rotation: 0, state: enabled}
+
+- name: pluto_rx_source
+  id: iio_pluto_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: rf_bandwidth_hz
+    bbdc: 'True'
+    buffer_size: rx_buffer_samples
+    comment: "真实 PlutoSDR 接收"
+    filter: "''"
+    filter_source: "'Auto'"
+    fpass: '0'
+    frequency: center_frequency_hz
+    fstop: '0'
+    gain1: "'manual'"
+    len_tag_key: "''"
+    manual_gain1: rx_gain_db
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rfdc: 'True'
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [80, 392]
+    rotation: 0
+    state: enabled
+
+- name: finite_capture
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "15 秒后自动结束；可按需要增大 capture_seconds"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: capture_samples
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [416, 392]
+    rotation: 0
+    state: enabled
+
+- name: demo_rx_sink
+  id: epy_block
+  parameters:
+    _source_code: |
+      from pathlib import Path
+      import json
+      import sys
+      import numpy as np
+      from gnuradio import gr
+
+      # GRC evaluates this source before generated-module ``__file__`` exists.
+      # Support both that parse stage (workspace/demo) and normal runs from demo.
+      for _CANDIDATE in (
+          Path.cwd(), Path.cwd() / "demo",
+          Path(r"C:\Users\16839\Desktop\无线电gpt\demo"),
+      ):
+          if (_CANDIDATE / "demo_codec.py").is_file() and str(_CANDIDATE) not in sys.path:
+              sys.path.insert(0, str(_CANDIDATE))
+      from demo_codec import DemoConfig, PROJECT_BACKEND, StreamingDecoder
+
+
+      class blk(gr.sync_block):
+          """Streaming burst synchronizer and protected-packet decoder."""
+
+          def __init__(self, shared_key="demo-shared-key-2026", sample_rate=1000000,
+                       samples_per_chip=4, code_length=31, team_id=0,
+                       expected_sequence=1, output_text_path="decoded_message.txt",
+                       output_json_path="rx_status.json"):
+              gr.sync_block.__init__(
+                  self, name="Demo DSSS sync/decoder",
+                  in_sig=[np.complex64], out_sig=None)
+              self.config = DemoConfig(
+                  sample_rate=int(sample_rate), samples_per_chip=int(samples_per_chip),
+                  code_length=int(code_length), team_id=int(team_id),
+                  shared_key=str(shared_key), sequence=int(expected_sequence))
+              self.decoder = StreamingDecoder(
+                  self.config, str(output_text_path), str(output_json_path))
+              self.announced = False
+              self.output_json_path = Path(str(output_json_path))
+
+          def start(self):
+              print("[DEMO RX] Waiting for a protected DSSS packet...")
+              print("[DEMO RX] Project codec backend:", PROJECT_BACKEND)
+              return True
+
+          def work(self, input_items, output_items):
+              result = self.decoder.push(input_items[0])
+              if result is not None and not self.announced:
+                  self.announced = True
+                  print("[DEMO RX] SUCCESS, CRC-32 passed")
+                  print("[DEMO RX] Message:", result.message)
+                  print("[DEMO RX] CFO: %.1f Hz, sync: %.3f, weakest pilot: %.3f" %
+                        (result.cfo_hz, result.sync_score, result.minimum_pilot_score))
+              return len(input_items[0])
+
+          def stop(self):
+              if self.decoder.result is None:
+                  status = {
+                      "status": "NO_VALID_PACKET",
+                      "hint": "Check TX/RX frequency, URI, gain, attenuation and shared parameters.",
+                      "attempts": self.decoder.attempts,
+                  }
+                  self.output_json_path.write_text(
+                      json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                  print("[DEMO RX] No CRC-valid packet was found; see rx_status.json")
+              return True
+    affinity: ''
+    alias: ''
+    code_length: code_length
+    comment: "含突发检测、FFT 频偏估计、同步相关、周期导频跟踪、解扩、软维特比和 CRC"
+    expected_sequence: expected_sequence
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_json_path: output_json_path
+    output_text_path: output_text_path
+    sample_rate: samp_rate
+    samples_per_chip: samples_per_chip
+    shared_key: shared_key
+    team_id: team_id
+  states:
+    _io_cache: ('Demo DSSS sync/decoder', 'blk', [('shared_key', 'demo-shared-key-2026'),
+      ('sample_rate', '1000000'), ('samples_per_chip', '4'), ('code_length', '31'),
+      ('team_id', '0'), ('expected_sequence', '1'),
+      ('output_text_path', 'decoded_message.txt'), ('output_json_path', 'rx_status.json')],
+      [('0', 'complex', 1)], [], 'Streaming burst synchronizer and protected-packet decoder.', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [760, 392]
+    rotation: 0
+    state: enabled
+
+- name: note_rx_chain
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "接收：包间静默检测 → 62.5 kHz 捕获音 FFT 估频偏 → Gold 同步相关 → 周期导频校时/校相 → DSSS 解扩 → 去交织 → 软维特比 → 共享密钥解扰 → CRC-32"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [80, 568], rotation: 0, state: enabled}
+- name: note_output
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "成功标志：终端显示 SUCCESS；decoded_message.txt 内容为 el psy kongroo；rx_status.json 中 status=SUCCESS 且 crc_ok=true。"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [80, 680], rotation: 0, state: enabled}
+
+connections:
+- [pluto_rx_source, '0', finite_capture, '0']
+- [finite_capture, '0', demo_rx_sink, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

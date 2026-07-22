@@ -1,0 +1,258 @@
+options:
+  parameters:
+    author: OpenAI Codex / wireless demo
+    catch_exceptions: 'True'
+    category: '[Demo]'
+    cmake_opt: ''
+    comment: "PlutoSDR DSSS 测试发射端；循环发送 el psy kongroo。"
+    copyright: '2026'
+    description: "共享密钥加扰 -> 卷积码 -> 交织 -> BPSK/DSSS -> PlutoSDR"
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: demo_tx_pluto
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Demo TX - DSSS protected text over PlutoSDR
+    window_size: (1350,760)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: message
+  id: variable
+  parameters:
+    comment: "要传送的 UTF-8 文本，最多 16 字节"
+    value: "'el psy kongroo'"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [16, 16], rotation: 0, state: enabled}
+- name: shared_key
+  id: variable
+  parameters:
+    comment: "TX/RX 必须完全相同；这是教学型共享密钥加扰，不代替正式密码协议"
+    value: "'demo-shared-key-2026'"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [192, 16], rotation: 0, state: enabled}
+- name: device_uri
+  id: variable
+  parameters:
+    comment: "Pluto URI；USB 默认通常为 ip:192.168.2.1"
+    value: "'ip:192.168.2.1'"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [424, 16], rotation: 0, state: enabled}
+- name: center_frequency_hz
+  id: variable
+  parameters:
+    comment: "测试中心频率；必须符合本地法规并与 RX 相同"
+    value: '2450000000'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [648, 16], rotation: 0, state: enabled}
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: "Pluto 基带采样率"
+    value: '1000000'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [840, 16], rotation: 0, state: enabled}
+- name: rf_bandwidth_hz
+  id: variable
+  parameters:
+    comment: "Pluto 模拟基带带宽"
+    value: '800000'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [1000, 16], rotation: 0, state: enabled}
+- name: samples_per_chip
+  id: variable
+  parameters:
+    comment: "每个 DSSS 码片的采样点数；TX/RX 必须相同"
+    value: '4'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [16, 112], rotation: 0, state: enabled}
+- name: code_length
+  id: variable
+  parameters:
+    comment: "DSSS 码长 31，理论处理增益约 14.9 dB"
+    value: '31'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [216, 112], rotation: 0, state: enabled}
+- name: team_id
+  id: variable
+  parameters:
+    comment: "选择扩频码；TX/RX 必须相同"
+    value: '0'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [376, 112], rotation: 0, state: enabled}
+- name: sequence
+  id: variable
+  parameters:
+    comment: "测试包序号"
+    value: '1'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [504, 112], rotation: 0, state: enabled}
+- name: baseband_amplitude
+  id: variable
+  parameters:
+    comment: "数字基带幅度，保持不超过 0.5"
+    value: '0.25'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [632, 112], rotation: 0, state: enabled}
+- name: gap_samples
+  id: variable
+  parameters:
+    comment: "重复包之间的静默采样点，用来找包头"
+    value: '25000'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [792, 112], rotation: 0, state: enabled}
+- name: tx_attenuation_db
+  id: variable
+  parameters:
+    comment: "Pluto 正衰减值；89.75 最弱，0 最强。首次测试建议从 70 开始"
+    value: '60.0'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [952, 112], rotation: 0, state: enabled}
+- name: tx_buffer_samples
+  id: variable
+  parameters:
+    comment: "Pluto TX 缓冲区"
+    value: '32768'
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [1144, 112], rotation: 0, state: enabled}
+- name: manifest_path
+  id: variable
+  parameters:
+    comment: "发射参数记录"
+    value: "'tx_manifest.json'"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [1144, 16], rotation: 0, state: enabled}
+
+- name: demo_tx_source
+  id: epy_block
+  parameters:
+    _source_code: |
+      from pathlib import Path
+      import json
+      import sys
+      import numpy as np
+      from gnuradio import gr
+
+      # GRC evaluates this source before generated-module ``__file__`` exists.
+      # Support both that parse stage (workspace/demo) and normal runs from demo.
+      for _CANDIDATE in (
+          Path.cwd(), Path.cwd() / "demo",
+          Path(r"C:\Users\16839\Desktop\无线电gpt\demo"),
+      ):
+          if (_CANDIDATE / "demo_codec.py").is_file() and str(_CANDIDATE) not in sys.path:
+              sys.path.insert(0, str(_CANDIDATE))
+      from demo_codec import DemoConfig, build_repeating_waveform
+
+
+      class blk(gr.sync_block):
+          """Infinite, repeating source containing one complete protected text packet."""
+
+          def __init__(self, message="el psy kongroo", shared_key="demo-shared-key-2026",
+                       sample_rate=1000000, samples_per_chip=4, code_length=31,
+                       team_id=0, amplitude=0.25, gap_samples=25000, sequence=1,
+                       manifest_path="tx_manifest.json"):
+              gr.sync_block.__init__(
+                  self, name="Demo packet FEC/interleave/DSSS",
+                  in_sig=None, out_sig=[np.complex64])
+              self.config = DemoConfig(
+                  sample_rate=int(sample_rate), samples_per_chip=int(samples_per_chip),
+                  code_length=int(code_length), team_id=int(team_id),
+                  shared_key=str(shared_key), amplitude=float(amplitude),
+                  gap_samples=int(gap_samples), sequence=int(sequence))
+              self.waveform, metadata = build_repeating_waveform(str(message), self.config)
+              Path(str(manifest_path)).write_text(
+                  json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+              self.position = 0
+              self.metadata = metadata
+
+          def start(self):
+              print("[DEMO TX] Repeating protected message:", self.metadata["payload_utf8"])
+              print("[DEMO TX] Cycle samples:", self.metadata["cycle_samples"],
+                    "processing gain: %.1f dB" % self.metadata["processing_gain_db"])
+              return True
+
+          def work(self, input_items, output_items):
+              output = output_items[0]
+              count = len(output)
+              indices = (np.arange(count, dtype=np.int64) + self.position) % len(self.waveform)
+              output[:] = self.waveform[indices]
+              self.position = int((self.position + count) % len(self.waveform))
+              return count
+    affinity: ''
+    alias: ''
+    amplitude: baseband_amplitude
+    code_length: code_length
+    comment: "完整包：加扰、CRC、卷积码、交织、DSSS、同步与导频"
+    gap_samples: gap_samples
+    manifest_path: manifest_path
+    maxoutbuf: '0'
+    message: message
+    minoutbuf: '0'
+    sample_rate: samp_rate
+    samples_per_chip: samples_per_chip
+    sequence: sequence
+    shared_key: shared_key
+    team_id: team_id
+  states:
+    _io_cache: ('Demo packet FEC/interleave/DSSS', 'blk', [('message', 'el psy kongroo'),
+      ('shared_key', 'demo-shared-key-2026'), ('sample_rate', '1000000'),
+      ('samples_per_chip', '4'), ('code_length', '31'), ('team_id', '0'),
+      ('amplitude', '0.25'), ('gap_samples', '25000'), ('sequence', '1'),
+      ('manifest_path', 'tx_manifest.json')], [], [('0', 'complex', 1)],
+      'Infinite, repeating source containing one complete protected text packet.', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [112, 352]
+    rotation: 0
+    state: enabled
+
+- name: pluto_tx_sink
+  id: iio_pluto_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    attenuation1: tx_attenuation_db
+    bandwidth: rf_bandwidth_hz
+    buffer_size: tx_buffer_samples
+    comment: "真实 PlutoSDR 发射；cyclic=False，由源块受流控地重复输出"
+    cyclic: 'False'
+    filter: "''"
+    filter_source: "'Auto'"
+    fpass: '0'
+    frequency: center_frequency_hz
+    fstop: '0'
+    len_tag_key: "''"
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [824, 352]
+    rotation: 0
+    state: enabled
+
+- name: note_signal_chain
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "文字 → 共享密钥 XOR 加扰 → CRC-32 → K=7 1/2 卷积码 → 块交织 → BPSK → 31 码片 DSSS → 同步/导频 → PlutoSDR"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [112, 520], rotation: 0, state: enabled}
+- name: note_safety
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: "安全：有线连接必须串联合适的 30–60 dB 射频衰减器，绝不能把 TX 口直接接 RX 口。无线测试前确认频率、功率、天线和当地法规。"
+  states: {bus_sink: false, bus_source: false, bus_structure: null, coordinate: [112, 624], rotation: 0, state: enabled}
+
+connections:
+- [demo_tx_source, '0', pluto_tx_sink, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
