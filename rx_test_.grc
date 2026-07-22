@@ -108,7 +108,7 @@ blocks:
 - name: access_code
   id: variable
   parameters:
-    comment: '"SYNC" as bits, MSB first'
+    comment: '"SYNC" MSB-first bits'
     value: '"01010011010110010100111001000011"'
   states:
     bus_sink: false
@@ -292,10 +292,10 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    comment: 'bit 0→0.0, bit 1→1.0'
+    comment: byte 0→0.0, byte 1→2.0
     maxoutbuf: '0'
     minoutbuf: '0'
-    scale: '1'
+    scale: '2'
     vlen: '1'
   states:
     bus_sink: false
@@ -304,40 +304,22 @@ blocks:
     coordinate: [1480, 200.0]
     rotation: 0
     state: enabled
-- name: blocks_multiply_const_vxx_0
-  id: blocks_multiply_const_vxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: '0.0→0.0, 1.0→2.0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    const: '2'
-    type: float
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1680, 200.0]
-    rotation: 0
-    state: enabled
 - name: blocks_add_const_vxx_0
   id: blocks_add_const_vxx
   parameters:
     affinity: ''
     alias: ''
-    comment: '0.0→-1.0, 2.0→+1.0'
+    comment: 0.0→-1.0, 2.0→+1.0
     maxoutbuf: '0'
     minoutbuf: '0'
-    const: '-1'
+    const: '-1.0'
     type: float
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1864, 200.0]
+    coordinate: [1664, 200.0]
     rotation: 0
     state: enabled
 - name: digital_correlate_access_code_bb_0
@@ -346,15 +328,15 @@ blocks:
     access_code: access_code
     affinity: ''
     alias: ''
-    comment: find SYNC pattern, align bit stream
+    comment: soft-correlate SYNC, output aligned bytes
     maxoutbuf: '0'
     minoutbuf: '0'
-    threshold: '32'
+    threshold: '30'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [2048, 200.0]
+    coordinate: [1848, 200.0]
     rotation: 0
     state: enabled
 - name: blocks_unpacked_to_packed_xx_0
@@ -373,7 +355,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [2248, 200.0]
+    coordinate: [2048, 200.0]
     rotation: 0
     state: enabled
 - name: blocks_file_sink_0
@@ -393,15 +375,14 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [2448, 200.0]
+    coordinate: [2248, 200.0]
     rotation: 0
     state: enabled
 
 connections:
 - [analog_agc_xx_0, '0', digital_fll_band_edge_cc_0, '0']
 - [blocks_add_const_vxx_0, '0', digital_correlate_access_code_bb_0, '0']
-- [blocks_char_to_float_0, '0', blocks_multiply_const_vxx_0, '0']
-- [blocks_multiply_const_vxx_0, '0', blocks_add_const_vxx_0, '0']
+- [blocks_char_to_float_0, '0', blocks_add_const_vxx_0, '0']
 - [blocks_skiphead_0, '0', digital_symbol_sync_xx_0, '0']
 - [blocks_unpacked_to_packed_xx_0, '0', blocks_file_sink_0, '0']
 - [digital_constellation_receiver_cb_0, '0', digital_diff_decoder_bb_0, '0']
