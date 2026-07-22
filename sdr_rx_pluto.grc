@@ -89,7 +89,7 @@ blocks:
 
 - name: rx_duration
   id: variable
-  parameters: {comment: 'RX最长接收时间 秒', value: '5.0'}
+  parameters: {comment: 'RX最长接收时间 秒 (比TX循环总时长稍长即可)', value: '30.0'}
   states: {coordinate: [16, 336], rotation: 0, state: enabled}
 
 - name: rx_buffer_size

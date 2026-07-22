@@ -3,7 +3,7 @@ options:
     author: ''
     catch_exceptions: 'True'
     category: '[Custom]'
-    comment: 'TX Plutosdr:读文件→BPSK→RRC→PlutoSDR发射'
+    comment: 'TX Plutosdr:循环发送文件→BPSK→RRC→PlutoSDR'
     description: ''
     gen_cmake: 'On'
     gen_linking: dynamic
@@ -69,17 +69,17 @@ blocks:
 
 - name: device_uri
   id: variable
-  parameters: {comment: 'PlutoSDR URI (ip:192.168.2.1 或 usb:...)', value: "'ip:192.168.2.1'"}
+  parameters: {comment: 'PlutoSDR URI', value: "'ip:192.168.2.1'"}
   states: {coordinate: [16, 256], rotation: 0, state: enabled}
 
 - name: center_freq
   id: variable
-  parameters: {comment: '中心频率 Hz (2.4GHz ISM band)', value: '2450000000'}
+  parameters: {comment: '中心频率 Hz', value: '2450000000'}
   states: {coordinate: [240, 256], rotation: 0, state: enabled}
 
 - name: tx_gain
   id: variable
-  parameters: {comment: 'TX硬件增益 dB (AD936x: -89.75 到 0)', value: '-10.0'}
+  parameters: {comment: 'TX增益 dB (-89到0)', value: '-10.0'}
   states: {coordinate: [464, 256], rotation: 0, state: enabled}
 
 - name: rf_bandwidth
@@ -92,22 +92,29 @@ blocks:
   parameters: {comment: 'IQ幅度缩放', value: '0.5'}
   states: {coordinate: [16, 336], rotation: 0, state: enabled}
 
+- name: repeat_count
+  id: variable
+  parameters: {comment: '重复发送次数 (0=无限)', value: '200'}
+  states: {coordinate: [240, 336], rotation: 0, state: enabled}
+
+- name: gap_samples
+  id: variable
+  parameters: {comment: '两次发送间的静默采样数', value: '200000'}
+  states: {coordinate: [480, 336], rotation: 0, state: enabled}
+
 - name: tx_source
   id: epy_block
   parameters:
     _source_code: |
-      import struct
-      import zlib
+      import struct, zlib
       from pathlib import Path
       import numpy as np
       from gnuradio import gr
 
       class blk(gr.sync_block):
-          """读文件→CRC32→组帧→BPSK→RRC→输出IQ"""
-
-          def __init__(self, input_path="test_data.txt",
-                       sps=8, alpha=0.35, span=6,
-                       preamble_len=64, guard_len=16, seed=42, tx_scale=0.5):
+          def __init__(self, input_path="test_data.txt", sps=8, alpha=0.35,
+                       span=6, preamble_len=64, guard_len=16, seed=42,
+                       tx_scale=0.5, repeat_count=200, gap_samples=200000):
               gr.sync_block.__init__(self, name="TX Source",
                                      in_sig=None, out_sig=[np.complex64])
               self.input_path = str(input_path)
@@ -115,9 +122,12 @@ blocks:
               self.span = int(span); self.preamble_len = int(preamble_len)
               self.guard_len = int(guard_len); self.seed = int(seed)
               self.tx_scale = float(tx_scale)
+              self.repeat_count = int(repeat_count)
+              self.gap_samples = int(gap_samples)
               self.sync_word = 0x1ACF
               self._waveform = np.empty(0, dtype=np.complex64)
               self._cursor = 0
+              self._repeat = 0
 
           @staticmethod
           def _rrc(spb, a, sp):
@@ -131,8 +141,9 @@ blocks:
               h[idx0] = 1.0 - a + 4.0 * a / np.pi
               tsp = 1.0 / (4.0 * a)
               for idx in np.where(np.abs(np.abs(t) - tsp) < 1e-6)[0]:
-                  h[idx] = (a / np.sqrt(2.0)) * ((1.0 + 2.0 / np.pi) * np.sin(np.pi / (4.0 * a))
-                                                  + (1.0 - 2.0 / np.pi) * np.cos(np.pi / (4.0 * a)))
+                  h[idx] = (a / np.sqrt(2.0)) * (
+                      (1.0 + 2.0 / np.pi) * np.sin(np.pi / (4.0 * a))
+                      + (1.0 - 2.0 / np.pi) * np.cos(np.pi / (4.0 * a)))
               e = np.sum(np.abs(h) ** 2)
               if e > 0: h /= np.sqrt(e)
               return np.float64(h)
@@ -156,8 +167,10 @@ blocks:
               crc = zlib.crc32(data) & 0xFFFFFFFF
               payload_crc = data + struct.pack(">I", crc)
               payload_bits = np.unpackbits(np.frombuffer(payload_crc, dtype=np.uint8))
-              len_bits = np.unpackbits(np.array([len(data)], dtype=">u2").view(np.uint8))
-              sync_bits = np.unpackbits(np.array([self.sync_word], dtype=">u2").view(np.uint8))
+              len_bits = np.unpackbits(
+                  np.array([len(data)], dtype=">u2").view(np.uint8))
+              sync_bits = np.unpackbits(
+                  np.array([self.sync_word], dtype=">u2").view(np.uint8))
               guard_syms = np.zeros(self.guard_len, dtype=np.complex128)
               rng = np.random.default_rng(self.seed)
               pream_bits = (rng.random(self.preamble_len) > 0.5).astype(np.uint8)
@@ -169,31 +182,56 @@ blocks:
               iq = self._shape(syms, self.sps, self.alpha, self.span)
               peak = float(np.max(np.abs(iq)))
               if peak > 0: iq = iq * np.float32(self.tx_scale / peak)
-              self._waveform = np.asarray(iq, dtype=np.complex64)
+
+              self._payload_waveform = np.asarray(iq, dtype=np.complex64)
+              self._gap = np.zeros(self.gap_samples, dtype=np.complex64)
+
+              # 构建重复波形: payload + gap + payload + gap + ...
+              parts = [self._payload_waveform]
+              for _ in range(self.repeat_count - 1 if self.repeat_count > 0 else 99999):
+                  parts.append(self._gap)
+                  parts.append(self._payload_waveform)
+              self._waveform = np.concatenate(parts) if len(parts) > 1 else parts[0]
               self._cursor = 0
-              print(f"[TX] file={source.name} size={len(data)}B IQ={len(self._waveform)}")
+              self._repeat = 0
+              peak2 = float(np.max(np.abs(self._waveform)))
+              print(f"[TX] file={source.name} size={len(data)}B "
+                    f"IQ={len(self._payload_waveform)} repeat={self.repeat_count} "
+                    f"total={len(self._waveform)} samples "
+                    f"({len(self._waveform)/2000000:.1f}s @2MHz)")
               return True
 
           def work(self, input_items, output_items):
-              if self._cursor >= len(self._waveform): return -1
+              # 循环发送: 如果 cursor 到末尾，回到开头 (repeat_count=0 时无限循环)
               out = output_items[0]
-              n = min(len(out), len(self._waveform) - self._cursor)
-              out[:n] = self._waveform[self._cursor:self._cursor + n]
-              self._cursor += n
-              return n
+              produced = 0
+              while produced < len(out):
+                  if self._cursor >= len(self._waveform):
+                      if self.repeat_count == 0:
+                          self._cursor = 0  # 无限循环
+                      else:
+                          return produced if produced else -1  # 发完退出
+                  n = min(len(out) - produced, len(self._waveform) - self._cursor)
+                  out[produced:produced + n] = self._waveform[
+                      self._cursor:self._cursor + n]
+                  self._cursor += n
+                  produced += n
+              return produced
     affinity: ''
     alias: ''
     alpha: alpha
+    gap_samples: gap_samples
     guard_len: guard_len
     input_path: input_file
     maxoutbuf: '0'
     minoutbuf: '0'
     preamble_len: preamble_len
+    repeat_count: repeat_count
     seed: seed
     span: span
     sps: sps
     tx_scale: tx_scale
-  states: {coordinate: [16, 432], rotation: 0, state: enabled}
+  states: {coordinate: [16, 472], rotation: 0, state: enabled}
 
 - name: pluto_tx_sink
   id: epy_block
@@ -203,11 +241,9 @@ blocks:
       from gnuradio import gr
 
       class blk(gr.sync_block):
-          """PlutoSDR TX: 将IQ流发送到PlutoSDR"""
-
-          def __init__(self, device_uri="ip:192.168.2.1",
-                       samp_rate=2000000, center_freq=2450000000,
-                       rf_bandwidth=1000000, tx_gain=-10.0, tx_scale=0.5):
+          def __init__(self, device_uri="ip:192.168.2.1", samp_rate=2000000,
+                       center_freq=2450000000, rf_bandwidth=1000000,
+                       tx_gain=-10.0, tx_scale=0.5):
               gr.sync_block.__init__(self, name="Pluto TX Sink",
                                      in_sig=[np.complex64], out_sig=None)
               self.device_uri = str(device_uri)
@@ -226,11 +262,9 @@ blocks:
               self._sdr.tx_rf_bandwidth = self.rf_bandwidth
               self._sdr.tx_hardwaregain_chan0 = self.tx_gain
               self._sdr.tx_cyclic_buffer = False
-              print(f"[TX Pluto] uri={self.device_uri} freq={self.center_freq} "
-                    f"rate={self.samp_rate} gain={self.tx_gain}dB")
-
-              # warm-up: 发送一小段静默避免初始毛刺
               self._sdr.tx(np.zeros(1024, dtype=np.complex64) * np.float32(2**14))
+              print(f"[TX Pluto] uri={self.device_uri} freq={self.center_freq/1e9:.3f}GHz "
+                    f"rate={self.samp_rate/1e6:.1f}MHz gain={self.tx_gain}dB")
               return True
 
           def work(self, input_items, output_items):
@@ -239,14 +273,14 @@ blocks:
                   peak = float(np.max(np.abs(x)))
                   if peak > self.tx_scale:
                       x = x * (self.tx_scale / peak)
-                  self._sdr.tx(x * np.float32(2**14))  # AD936x expects 12-bit scaled IQ
+                  self._sdr.tx(x * np.float32(2**14))
               return len(x)
 
           def stop(self):
               if self._sdr is not None:
                   self._sdr.tx_destroy_buffer()
                   self._sdr = None
-                  print("[TX Pluto] buffer destroyed, device released")
+                  print("[TX Pluto] done")
               return True
     affinity: ''
     alias: ''
@@ -258,7 +292,7 @@ blocks:
     samp_rate: samp_rate
     tx_gain: tx_gain
     tx_scale: tx_scale
-  states: {coordinate: [272, 432], rotation: 0, state: enabled}
+  states: {coordinate: [272, 472], rotation: 0, state: enabled}
 
 connections:
   - [tx_source, '0', pluto_tx_sink, '0']
