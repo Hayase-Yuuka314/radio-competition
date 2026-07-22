@@ -1,0 +1,7 @@
+[console_scripts]
+wireless-evaluate = wireless_competition.cli.evaluate:main
+wireless-generate-dataset = wireless_competition.cli.generate_dataset:main
+wireless-receive = wireless_competition.cli.receive:main
+wireless-simulate = wireless_competition.cli.simulate:main
+wireless-train-classifier = wireless_competition.cli.train_classifier:main
+wireless-transmit = wireless_competition.cli.transmit:main

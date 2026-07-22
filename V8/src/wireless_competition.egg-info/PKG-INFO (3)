@@ -1,0 +1,23 @@
+Metadata-Version: 2.4
+Name: wireless-competition
+Version: 0.1.0
+Summary: 电波对决争锋 — 无线通信竞赛备赛系统
+Author: Competition Team
+License: MIT
+Requires-Python: >=3.11
+Requires-Dist: numpy>=1.26
+Requires-Dist: scipy>=1.11
+Requires-Dist: matplotlib>=3.8
+Requires-Dist: pandas>=2.1
+Requires-Dist: scikit-learn>=1.3
+Requires-Dist: pytest>=7.4
+Requires-Dist: pytest-cov>=4.1
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: joblib>=1.3
+Provides-Extra: gpu
+Requires-Dist: torch>=2.1; extra == "gpu"
+Provides-Extra: cpu
+Requires-Dist: torch>=2.1; extra == "cpu"
+Provides-Extra: sdr
+Requires-Dist: pyadi-iio>=0.0.15; extra == "sdr"
+Requires-Dist: pylibiio>=0.25; extra == "sdr"
