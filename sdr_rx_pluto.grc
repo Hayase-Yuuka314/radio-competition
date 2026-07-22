@@ -99,7 +99,7 @@ blocks:
 
 - name: max_capture
   id: variable
-  parameters: {comment: '最大缓存样本数(防止内存爆炸)', value: '4000000'}
+  parameters: {comment: '滑动窗口大小(样本数)', value: '10000000'}
   states: {coordinate: [512, 336], rotation: 0, state: enabled}
 
 - name: pluto_rx_source
@@ -207,6 +207,7 @@ blocks:
               self.sync_word = 0x1ACF
               self._buffer = np.empty(0, dtype=np.complex64)
               self._decoded = False
+              self._total_samples = 0
 
           @staticmethod
           def _rrc(spb, a, sp):
@@ -323,10 +324,17 @@ blocks:
           def work(self, input_items, output_items):
               if self._decoded: return 0
               x = np.asarray(input_items[0], dtype=np.complex64)
-              room = self.max_capture - len(self._buffer)
-              if room > 0:
-                  take = min(len(x), room)
-                  self._buffer = np.concatenate((self._buffer, x[:take]))
+              # slide window: always keep most recent max_capture samples
+              self._buffer = np.concatenate((self._buffer, x))
+              if len(self._buffer) > self.max_capture:
+                  self._buffer = self._buffer[-self.max_capture:]
+              self._total_samples += len(x)
+              # print buffer status every ~2.5s
+              if self._total_samples % (self.max_capture // 4) < len(x):
+                  pwr = 10 * np.log10(np.mean(np.abs(x) ** 2) + 1e-20)
+                  peak = 20 * np.log10(np.max(np.abs(x)) + 1e-20)
+                  print(f"[RX] buffer={len(self._buffer)} total={self._total_samples} "
+                        f"avgPwr={pwr:.1f}dBFS peakPwr={peak:.1f}dBFS")
               return len(x)
 
           def stop(self):
