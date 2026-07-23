@@ -72,20 +72,40 @@ blocks:
 - name: pluto_rx_source
   id: iio_pluto_source
   parameters:
-    affinity: ''; alias: ''
-    bandwidth: rf_bandwidth; bbdc: 'True'; buffer_size: '65536'
-    filter: "''"; filter_source: "'Auto'"
-    fpass: '0'; frequency: center_freq; fstop: '0'
-    gain1: "'manual'"; manual_gain1: rx_gain
-    quadrature: 'True'; rfdc: 'True'
-    samplerate: samp_rate; type: fc32; uri: device_uri
+    affinity: ''
+    alias: ''
+    bandwidth: rf_bandwidth
+    bbdc: 'True'
+    buffer_size: '65536'
+    comment: 'PlutoSDR RX'
+    filter: "''"
+    filter_source: "'Auto'"
+    fpass: '0'
+    frequency: center_freq
+    fstop: '0'
+    gain1: "'manual'"
+    len_tag_key: "''"
+    manual_gain1: rx_gain
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rfdc: 'True'
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
   states: {coordinate: [80, 400], rotation: 0, state: enabled}
 
 - name: finite_capture
   id: blocks_head
   parameters:
-    affinity: ''; alias: ''
-    num_items: capture_samples; type: complex; vlen: '1'
+    affinity: ''
+    alias: ''
+    comment: '有限采集'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: capture_samples
+    type: complex
+    vlen: '1'
   states: {coordinate: [352, 400], rotation: 0, state: enabled}
 
 - name: contest_rx_sink
@@ -241,6 +261,8 @@ blocks:
     affinity: ''
     alias: ''
     capture_seconds: capture_seconds
+    maxoutbuf: '0'
+    minoutbuf: '0'
     samp_rate: samp_rate
     sps: sps
     team_name: team_name
