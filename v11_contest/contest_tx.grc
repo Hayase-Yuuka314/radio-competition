@@ -1,0 +1,203 @@
+options:
+  parameters:
+    author: Contest Team
+    catch_exceptions: 'True'
+    category: '[Contest]'
+    comment: '比赛TX: 文件分帧→DSSS(SF=127)→跳频→PlutoSDR发射'
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    id: contest_tx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Contest TX - DSSS SF127 + FH
+  states:
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+
+- name: samp_rate
+  id: variable
+  parameters: {comment: '采样率(必须=RX)', value: '1000000'}
+  states: {coordinate: [16, 16], rotation: 0, state: enabled}
+
+- name: samples_per_chip
+  id: variable
+  parameters: {comment: '每码片采样数(必须=RX)', value: '4'}
+  states: {coordinate: [200, 16], rotation: 0, state: enabled}
+
+- name: code_length
+  id: variable
+  parameters: {comment: 'DSSS扩频码长 31/63/127(必须=RX)', value: '127'}
+  states: {coordinate: [400, 16], rotation: 0, state: enabled}
+
+- name: team_id
+  id: variable
+  parameters: {comment: '队伍ID 0-9,选Gold码(必须=RX)', value: '0'}
+  states: {coordinate: [600, 16], rotation: 0, state: enabled}
+
+- name: shared_key
+  id: variable
+  parameters: {comment: '共享密钥(必须=RX)', value: "'contest-key-2026'"}
+  states: {coordinate: [16, 96], rotation: 0, state: enabled}
+
+- name: input_file
+  id: variable
+  parameters: {comment: '待发送文件', value: "'test_data.txt'"}
+  states: {coordinate: [16, 176], rotation: 0, state: enabled}
+
+- name: device_uri
+  id: variable
+  parameters: {comment: 'TX Pluto URI', value: "'ip:192.168.2.1'"}
+  states: {coordinate: [240, 176], rotation: 0, state: enabled}
+
+- name: center_freq
+  id: variable
+  parameters: {comment: '起始中心频率 Hz', value: '2450000000'}
+  states: {coordinate: [480, 176], rotation: 0, state: enabled}
+
+- name: tx_attenuation
+  id: variable
+  parameters: {comment: 'TX衰减 dB(>60首次测试)', value: '60.0'}
+  states: {coordinate: [720, 176], rotation: 0, state: enabled}
+
+- name: hop_enabled
+  id: variable
+  parameters: {comment: '跳频开关 1=开 0=关', value: '1'}
+  states: {coordinate: [16, 256], rotation: 0, state: enabled}
+
+- name: amplitude
+  id: variable
+  parameters: {comment: '基带幅度', value: '0.30'}
+  states: {coordinate: [240, 256], rotation: 0, state: enabled}
+
+- name: gap_samples
+  id: variable
+  parameters: {comment: '包间隔静默采样', value: '50000'}
+  states: {coordinate: [416, 256], rotation: 0, state: enabled}
+
+- name: rf_bandwidth
+  id: variable
+  parameters: {comment: 'RF带宽 Hz', value: '1000000'}
+  states: {coordinate: [16, 336], rotation: 0, state: enabled}
+
+- name: contest_tx_source
+  id: epy_block
+  parameters:
+    _source_code: |
+      import json, sys
+      from pathlib import Path
+      import numpy as np
+      from gnuradio import gr
+
+      for _d in (Path.cwd(), Path.cwd()/"v11_contest",
+                 Path(r"C:\Users\HP\Desktop\radio\radio-competition\v11_contest")):
+          if (_d/"contest_codec.py").is_file() and str(_d) not in sys.path:
+              sys.path.insert(0, str(_d))
+      from contest_codec import (ContestConfig, prepare_file_transfer,
+                                  build_burst, MAX_PAYLOAD_BYTES)
+
+      class blk(gr.sync_block):
+          def __init__(self, input_path="test_data.txt", sample_rate=1000000,
+                       samples_per_chip=4, code_length=127, team_id=0,
+                       shared_key="contest-key-2026", amplitude=0.30,
+                       gap_samples=50000, hop_enabled=1):
+              gr.sync_block.__init__(self, name="Contest TX Source",
+                                     in_sig=None, out_sig=[np.complex64])
+              self.config = ContestConfig(
+                  sample_rate=int(sample_rate),
+                  samples_per_chip=int(samples_per_chip),
+                  code_length=int(code_length), team_id=int(team_id),
+                  shared_key=str(shared_key), amplitude=float(amplitude),
+                  gap_samples=int(gap_samples),
+                  hop_enabled=bool(int(hop_enabled)))
+              self.input_path = str(input_path)
+              self._waveform = np.empty(0, dtype=np.complex64)
+              self._pos = 0
+              self._packet_count = 0
+
+          def start(self):
+              file_path = Path(self.input_path)
+              if not file_path.is_file():
+                  raise FileNotFoundError(f"not found: {file_path}")
+              packets, manifest = prepare_file_transfer(file_path, self.config)
+              self._packet_count = len(packets)
+              print(f"[TX] file={manifest.file_name} size={manifest.original_size}B"
+                    f" blocks={manifest.total_blocks} SF={self.config.code_length}"
+                    f" gain={self.config.processing_gain_db:.1f}dB"
+                    f" hop={'ON' if self.config.hop_enabled else 'OFF'}")
+
+              # Build repeating waveform: all packets looped
+              bursts = []
+              for pkt in packets:
+                  bursts.append(build_burst(pkt, self.config))
+              one_cycle = np.concatenate(bursts)
+              # Repeat to fill ~5 seconds
+              repeats = max(1, int(5.0 * self.config.sample_rate / len(one_cycle)))
+              self._waveform = np.tile(one_cycle, repeats).astype(np.complex64)
+              self._pos = 0
+              print(f"[TX] waveform: {len(one_cycle)} samples/packets "
+                    f"x{repeats}={len(self._waveform)} total")
+              return True
+
+          def work(self, input_items, output_items):
+              out = output_items[0]
+              n = len(out)
+              # Cycle the waveform
+              indices = (np.arange(n, dtype=np.int64) + self._pos) % len(self._waveform)
+              out[:] = self._waveform[indices]
+              self._pos = (self._pos + n) % len(self._waveform)
+              return n
+    affinity: ''
+    alias: ''
+    amplitude: amplitude
+    code_length: code_length
+    gap_samples: gap_samples
+    hop_enabled: hop_enabled
+    input_path: input_file
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sample_rate: samp_rate
+    samples_per_chip: samples_per_chip
+    shared_key: shared_key
+    team_id: team_id
+  states: {coordinate: [16, 472], rotation: 0, state: enabled}
+
+- name: pluto_tx_sink
+  id: iio_pluto_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    attenuation1: tx_attenuation
+    bandwidth: rf_bandwidth
+    buffer_size: '32768'
+    comment: 'PlutoSDR发射'
+    cyclic: 'False'
+    filter: "''"
+    filter_source: "'Auto'"
+    fpass: '0'
+    frequency: center_freq
+    fstop: '0'
+    len_tag_key: "''"
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states: {coordinate: [304, 472], rotation: 0, state: enabled}
+
+connections:
+  - [contest_tx_source, '0', pluto_tx_sink, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
