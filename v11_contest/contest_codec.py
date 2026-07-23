@@ -58,7 +58,7 @@ ACQUISITION_TONE_HZ = 62_500.0
 ACQUISITION_SAMPLES = 4096   # 2x demo for better CFO in interference
 SYNC_CHIPS = 511             # 2x demo
 PILOT_CHIPS = 255            # 2x demo
-MAX_PAYLOAD_BYTES = 4096     # file chunks
+MAX_PAYLOAD_BYTES = 512   # file chunk size (burst ~3.5s @ SF=127)
 
 # Frequency hopping: 16 channels, 5 MHz spacing, 2.4 GHz ISM band
 HOP_CHANNELS = [
