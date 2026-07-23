@@ -3,8 +3,8 @@ options:
     author: Contest Team
     catch_exceptions: 'True'
     category: '[Contest]'
-    comment: '比赛RX:Pluto接收→QPSK解调→文件重组→输出00-队名.txt'
-    description: 'QPSK sps=2 3MHz 实时解码'
+    comment: '比赛RX:Pluto接收→QPSK解调→文件重组 (优化版—减轻overrun)'
+    description: ''
     gen_cmake: 'On'
     gen_linking: dynamic
     generate_options: no_gui
@@ -19,7 +19,7 @@ options:
     run_options: prompt
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: Contest Data RX - QPSK 3MHz
+    title: Contest Data RX
   states:
     coordinate: [8, 8]
     rotation: 0
@@ -49,7 +49,7 @@ blocks:
 
 - name: rx_gain
   id: variable
-  parameters: {comment: 'RX增益 dB', value: '20.0'}
+  parameters: {comment: 'RX增益', value: '20.0'}
   states: {coordinate: [240, 96], rotation: 0, state: enabled}
 
 - name: rf_bandwidth
@@ -59,17 +59,17 @@ blocks:
 
 - name: team_name
   id: variable
-  parameters: {comment: '队名(用于输出文件名)', value: "'MyTeam'"}
+  parameters: {comment: '队名', value: "'MyTeam'"}
   states: {coordinate: [16, 176], rotation: 0, state: enabled}
 
 - name: capture_seconds
   id: variable
-  parameters: {comment: '采集时长 秒', value: '60.0'}
+  parameters: {comment: '采集时长', value: '120.0'}
   states: {coordinate: [240, 176], rotation: 0, state: enabled}
 
 - name: capture_samples
   id: variable
-  parameters: {comment: '', value: int(capture_seconds * samp_rate)}
+  parameters: {comment: '', value: int(capture_seconds*samp_rate)}
   states: {coordinate: [440, 176], rotation: 0, state: enabled}
 
 - name: pluto_rx_source
@@ -89,8 +89,6 @@ blocks:
     gain1: "'manual'"
     len_tag_key: "''"
     manual_gain1: rx_gain
-    maxoutbuf: '0'
-    minoutbuf: '0'
     quadrature: 'True'
     rfdc: 'True'
     samplerate: samp_rate
@@ -104,8 +102,6 @@ blocks:
     affinity: ''
     alias: ''
     comment: '有限采集'
-    maxoutbuf: '0'
-    minoutbuf: '0'
     num_items: capture_samples
     type: complex
     vlen: '1'
@@ -122,18 +118,19 @@ blocks:
 
       PREAMBLE_LEN = 64
       SYNC_WORD = 0x1ACF
-      RRC_ALPHA = 0.35
-      RRC_SPAN = 6
 
-      def _rrc_coeffs(spb, alpha, span):
-          t = np.arange(-span, span+1e-12, 1./spb)
-          pi_t = np.pi*t; f4at = 4*alpha*t
-          d = pi_t*(1-f4at**2); n = np.sin(pi_t*(1-alpha))+f4at*np.cos(pi_t*(1+alpha))
+      # ── precompute DSP templates once ──
+      _RRC_SPAN, _RRC_ALPHA = 6, 0.35
+      def _rrc(spb):  # cached per sps
+          a, sp = _RRC_ALPHA, _RRC_SPAN
+          t = np.arange(-sp, sp+1e-12, 1./spb)
+          pi_t = np.pi*t; f4at = 4*a*t
+          d = pi_t*(1-f4at**2); n = np.sin(pi_t*(1-a))+f4at*np.cos(pi_t*(1+a))
           h = np.zeros_like(t); ok = np.abs(d)>=1e-12; h[ok]=n[ok]/d[ok]
-          i0 = np.argmin(np.abs(t)); h[i0]=1-alpha+4*alpha/np.pi
-          ts = 1/(4*alpha)
+          i0 = np.argmin(np.abs(t)); h[i0]=1-a+4*a/np.pi
+          ts = 1/(4*a)
           for idx in np.where(np.abs(np.abs(t)-ts)<1e-6)[0]:
-              h[idx] = (alpha/np.sqrt(2))*((1+2/np.pi)*np.sin(np.pi/(4*alpha))+(1-2/np.pi)*np.cos(np.pi/(4*alpha)))
+              h[idx]=(a/np.sqrt(2))*((1+2/np.pi)*np.sin(np.pi/(4*a))+(1-2/np.pi)*np.cos(np.pi/(4*a)))
           e = np.sum(np.abs(h)**2)
           if e>0: h/=np.sqrt(e)
           return np.float64(h)
@@ -151,162 +148,155 @@ blocks:
           bits[1::2] = (np.imag(syms)<0).astype(np.uint8)
           return bits
 
-      def _pulse_shape(syms, spb, alpha, span):
-          rrc = _rrc_coeffs(spb, alpha, span)
-          up = np.zeros(len(syms)*spb, dtype=np.complex128); up[::spb]=syms
-          return np.convolve(up, rrc)
-
-      def _mf(iq, spb, alpha, span):
-          rrc = _rrc_coeffs(spb, alpha, span); delay = span*spb
+      def _mf(iq, spb):
+          rrc = _rrc(spb); delay = _RRC_SPAN*spb
           m = np.convolve(iq, rrc)
           if len(m)>2*delay: m = m[delay:-delay]
           return m
 
       class blk(gr.sync_block):
-          def __init__(self, samp_rate=3000000, sps=2, team_name="MyTeam", capture_seconds=60):
+          def __init__(self, samp_rate=3000000, sps=2, team_name="MyTeam", capture_seconds=120):
               gr.sync_block.__init__(self, name="QPSK RX", in_sig=[np.complex64], out_sig=None)
-              self.samp_rate = int(samp_rate); self.sps = int(sps)
-              self.team_name = str(team_name)
+              self.sr = int(samp_rate); self.sps = int(sps)
+              self.team = str(team_name)
               self._buf = np.empty(0, dtype=np.complex64)
-              self._total = 0; self._results = {}; self._metas = {}
-              self._decoded = set()
-
-          def _normalize(self, data):
-              data = np.asarray(data, dtype=np.complex128)
-              data -= np.mean(data)
-              peak = np.max(np.abs(data))
-              if peak>1e-12: data/=peak
-              return np.asarray(data, dtype=np.complex64)
-
-          def _decode_frame(self, iq, frame_start):
-              mf = _mf(iq, self.sps, RRC_ALPHA, RRC_SPAN)
-              delay = RRC_SPAN*self.sps
+              self._res = {}; self._meta = {}; self._done = set()
+              self._decode_count = 0
+              # prebuild preamble & sync templates
               rng = np.random.default_rng(42)
               pb = (rng.random(PREAMBLE_LEN)>0.5).astype(np.uint8)
-              ps = _qpsk_mod(np.repeat(pb,2))[:PREAMBLE_LEN]
+              self.ps = _qpsk_mod(np.repeat(pb,2))[:PREAMBLE_LEN]
               sb = np.unpackbits(np.array([SYNC_WORD],dtype=">u2").view(np.uint8))
-              sb_syms = _qpsk_mod(sb)[:8]
-              # Search preamble in MF near expected position
-              approx = frame_start + delay
-              lo = max(0, approx-2*delay); hi = min(len(mf)-PREAMBLE_LEN*self.sps, approx+2*delay)
-              bo, bp, bc = approx, 0, -1.0
+              self.sb_syms = _qpsk_mod(sb)[:8]
+              self.sb = sb
+
+          def _decode_one(self, iq, frame_start):
+              mf = _mf(iq, self.sps)
+              dly = _RRC_SPAN*self.sps
+              approx = frame_start+dly
+              lo=max(0,approx-3*dly); hi=min(len(mf)-PREAMBLE_LEN*self.sps, approx+3*dly)
+              bo,bp,bc=approx,0,-1.0
               for off in range(lo, hi):
                   for ph in range(self.sps):
-                      cd = mf[off+ph::self.sps][:PREAMBLE_LEN]
-                      d = float(np.abs(np.dot(cd, ps.conj())))
-                      if d>bc: bc, bo, bp = d, off, ph
-              iq0 = bo+bp
+                      cd=mf[off+ph::self.sps][:PREAMBLE_LEN]
+                      d=float(np.abs(np.dot(cd,self.ps.conj())))
+                      if d>bc: bc,bo,bp=d,off,ph
+              iq0=bo+bp
               while iq0<0: iq0+=self.sps
-              sf = mf[iq0::self.sps]
-              pos = PREAMBLE_LEN
-              if pos+8+32+4>len(sf): return None
-              # sync check
-              rx_sync = _qpsk_demod(sf[pos:pos+8])[:16]
-              if not np.array_equal(rx_sync, sb[:len(rx_sync)]): return None
-              pos += 8
-              # header
-              hdr_bits = _qpsk_demod(sf[pos:pos+32])[:64]
-              pos += 32
-              ba = np.asarray(hdr_bits, dtype=np.uint8)
+              sf=mf[iq0::self.sps]; pos=PREAMBLE_LEN
+              if pos+40>len(sf): return None
+              rs=_qpsk_demod(sf[pos:pos+8])[:16]
+              if not np.array_equal(rs,self.sb[:len(rs)]): return None
+              pos+=8
+              hb=_qpsk_demod(sf[pos:pos+32])[:64]; pos+=32
+              ba=np.asarray(hb,dtype=np.uint8)
               if len(ba)%8: ba=np.pad(ba,(0,8-len(ba)%8))
-              hdr = np.packbits(ba).tobytes()[:8]
-              fid = struct.unpack(">H",hdr[0:2])[0]
-              seq = struct.unpack(">H",hdr[2:4])[0]
-              total = struct.unpack(">H",hdr[4:6])[0]
-              plen = struct.unpack(">H",hdr[6:8])[0]
+              hdr=np.packbits(ba).tobytes()[:8]
+              fid=struct.unpack(">H",hdr[0:2])[0]; seq=struct.unpack(">H",hdr[2:4])[0]
+              total=struct.unpack(">H",hdr[4:6])[0]; plen=struct.unpack(">H",hdr[6:8])[0]
               if plen==0 or plen>100000 or total==0: return None
-              # payload
-              pkt_bytes = plen+4
-              pkt_syms = (pkt_bytes*8+1)//2  # QPSK symbols for packet bits
+              pkt_bytes=plen+4; pkt_syms=(pkt_bytes*8+1)//2
               if pos+pkt_syms>len(sf): return None
-              pkt_bits = _qpsk_demod(sf[pos:pos+pkt_syms])[:pkt_bytes*8]
-              pos += pkt_syms
-              ba2 = np.asarray(pkt_bits, dtype=np.uint8)
+              pb2=_qpsk_demod(sf[pos:pos+pkt_syms])[:pkt_bytes*8]; pos+=pkt_syms
+              ba2=np.asarray(pb2,dtype=np.uint8)
               if len(ba2)%8: ba2=np.pad(ba2,(0,8-len(ba2)%8))
-              pkt = np.packbits(ba2).tobytes()[:pkt_bytes]
-              payload = pkt[:plen]; rx_crc = struct.unpack(">I",pkt[plen:plen+4])[0]
-              if (zlib.crc32(payload)&0xFFFFFFFF)!=rx_crc: return None
-              return (fid, seq, total, bytes(payload))
+              pkt=np.packbits(ba2).tobytes()[:pkt_bytes]
+              payload=pkt[:plen]; rc=struct.unpack(">I",pkt[plen:plen+4])[0]
+              if (zlib.crc32(payload)&0xFFFFFFFF)!=rc: return None
+              return (fid,seq,total,bytes(payload))
 
-          def _find_frames(self, iq):
-              rng = np.random.default_rng(42)
-              pb = (rng.random(PREAMBLE_LEN)>0.5).astype(np.uint8)
-              ps = _qpsk_mod(np.repeat(pb,2))[:PREAMBLE_LEN]
-              p_shaped = _pulse_shape(ps, self.sps, RRC_ALPHA, RRC_SPAN)
+          def _scan(self, iq):
+              """lightweight preamble scan on small window"""
+              # pre-shaped preamble template
+              rrc = _rrc(self.sps)
+              up = np.zeros(PREAMBLE_LEN*self.sps, dtype=np.complex128)
+              up[::self.sps] = self.ps
+              p_shaped = np.convolve(up, rrc)
               L = len(p_shaped)
-              pw = np.abs(iq)**2; cs=np.concatenate([[0.],np.cumsum(pw)])
-              wp = cs[L:]-cs[:-L]
+              if len(iq)<L: return [],0
               raw = np.abs(np.correlate(iq, p_shaped.conj(), mode="valid"))
-              pe = np.sum(np.abs(p_shaped)**2); denom = np.sqrt(wp*pe)
-              corr = np.zeros(len(iq), dtype=np.float64)
+              # simple threshold: 0.3 * max
+              pm = float(np.max(raw))
+              pe = np.sum(np.abs(p_shaped)**2)
+              pw = np.abs(iq)**2
+              cs = np.concatenate([[0.],np.cumsum(pw)])
+              wp = cs[L:]-cs[:-L]
+              denom = np.sqrt(wp*pe)
+              corr = np.zeros(len(iq))
               vn=len(raw); st=L-1
-              corr[st:st+vn] = np.divide(raw,denom,out=np.zeros(vn,dtype=np.float64),where=denom>1e-12)
-              pm = float(np.max(corr))
-              if pm<0.20: return [], 0.0
-              thr = max(0.20, 0.70*pm)
+              corr[st:st+vn] = np.divide(raw,denom,out=np.zeros(vn),where=denom>1e-12)
+              pm=float(np.max(corr))
+              if pm<0.18: return [],pm
+              thr=max(0.18,0.7*pm)
               starts=[]; i=0
               while i<len(corr):
                   if corr[i]<thr: i+=1; continue
                   j=i; pk=i; lim=min(len(corr),i+L)
                   while j<lim and corr[j]>=thr:
-                      if corr[j]>corr[pk]: pk=j
-                      j+=1
-                  fs = max(0, pk-L+1)
+                      if corr[j]>corr[pk]: pk=j; j+=1
+                  fs=max(0,pk-L+1)
                   if not starts or fs-starts[-1]>L: starts.append(fs)
-                  i = max(j, pk+L//2)
-              return starts, pm
+                  i=max(j,pk+L//2)
+              return starts,pm
 
           def work(self, input_items, output_items):
               x = np.asarray(input_items[0], dtype=np.complex64)
-              self._buf = np.concatenate([self._buf, x])
-              self._total += len(x)
+              # fast append — use list then join
+              if not hasattr(self,'_chunks'): self._chunks=[]
+              self._chunks.append(x.copy())
+              if len(self._chunks)>200:  # flush periodically
+                  self._buf=np.concatenate([self._buf]+self._chunks)
+                  self._chunks=[]
               # sliding window
-              if len(self._buf) > 20_000_000:
-                  self._buf = self._buf[-20_000_000:]
-              # try decode every ~2M samples
-              if len(self._buf)>500000 and self._total%2_000_000<len(x):
-                  iq = self._normalize(self._buf[-8_000_000:])
-                  starts, peak = self._find_frames(iq)
+              if len(self._buf)>12_000_000:
+                  self._buf=self._buf[-10_000_000:]
+              # decode every ~2M accumulated samples
+              self._decode_count+=len(x)
+              if self._decode_count>=2_000_000 and len(self._buf)>1_000_000:
+                  self._decode_count=0
+                  # flush chunks first
+                  if self._chunks:
+                      self._buf=np.concatenate([self._buf]+self._chunks)
+                      self._chunks=[]
+                  win=self._buf[-4_000_000:].astype(np.complex128)
+                  win-=np.mean(win); pk=np.max(np.abs(win))
+                  if pk>1e-12: win/=pk
+                  win=win.astype(np.complex64)
+                  starts,peak=self._scan(win)
                   if starts:
-                      offset = len(self._buf)-8_000_000
-                      for s in starts[:20]:
-                          r = self._decode_frame(iq, s)
+                      offset=len(self._buf)-4_000_000
+                      for s in starts[:10]:
+                          r=self._decode_one(win,s)
                           if r:
-                              fid, seq, total, payload = r
-                              key = (fid, seq)
-                              if key not in self._results:
-                                  self._results[key] = payload
-                                  self._metas[fid] = total
-                                  received = sum(1 for k in self._results if k[0]==fid)
-                                  print(f"[RX] pkt fid={fid} seq={seq}/{total} "
-                                        f"got={received}/{total} "
-                                        f"peak={peak:.3f}")
-
-              # check for complete files
-              for fid in list(self._metas.keys()):
-                  total = self._metas[fid]
-                  if fid in self._decoded: continue
-                  received = {k[1]:v for k,v in self._results.items() if k[0]==fid}
-                  if len(received)==total and total>0:
-                      data = b"".join(received[i] for i in range(total))
-                      fname = f"{fid:02d}-{self.team_name}.txt"
-                      Path(fname).write_bytes(data)
-                      print(f"[RX] COMPLETE: {fname} {len(data)}B")
-                      self._decoded.add(fid)
+                              fid,seq,total,payload=r
+                              key=(fid,seq)
+                              if key not in self._res:
+                                  self._res[key]=payload; self._meta[fid]=total
+                                  got=sum(1 for k in self._res if k[0]==fid)
+                                  pct=got/total*100 if total>0 else 0
+                                  print(f"[RX] fid={fid} seq={seq}/{total} ({pct:.0f}%) pk={peak:.3f}")
+                                  # check complete
+                                  if fid not in self._done and got>=total and total>0:
+                                      rcv={k[1]:v for k,v in self._res.items() if k[0]==fid}
+                                      if len(rcv)==total:
+                                          data=b"".join(rcv[i] for i in range(total))
+                                          fname=Path(f"{fid:02d}-{self.team}.txt")
+                                          fname.write_bytes(data)
+                                          sha=hashlib.sha256(data).hexdigest()[:16]
+                                          print(f"[RX] DONE {fname} {len(data)}B SHA256={sha}")
+                                          self._done.add(fid)
               return len(x)
 
           def stop(self):
-              if not self._decoded:
-                  print(f"[RX] stopped. found {len(self._results)} packets")
-                  for fid in self._metas:
-                      received = sum(1 for k in self._results if k[0]==fid)
-                      print(f"  file {fid}: {received}/{self._metas[fid]}")
+              if not self._done:
+                  print(f"[RX] stop. packets={len(self._res)}")
+                  for fid in self._meta:
+                      got=sum(1 for k in self._res if k[0]==fid)
+                      print(f"  file{fid}: {got}/{self._meta[fid]}")
               return True
     affinity: ''
     alias: ''
     capture_seconds: capture_seconds
-    maxoutbuf: '0'
-    minoutbuf: '0'
     samp_rate: samp_rate
     sps: sps
     team_name: team_name
