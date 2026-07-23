@@ -3,7 +3,7 @@ options:
     author: Contest Team
     catch_exceptions: 'True'
     category: '[Contest]'
-    comment: '比赛RX:Pluto接收→QPSK解调→文件重组 (优化版—减轻overrun)'
+    comment: '比赛RX:预分配环形缓冲,零拷贝,防overrun'
     description: ''
     gen_cmake: 'On'
     gen_linking: dynamic
@@ -20,10 +20,7 @@ options:
     sizing_mode: fixed
     thread_safe_setters: ''
     title: Contest Data RX
-  states:
-    coordinate: [8, 8]
-    rotation: 0
-    state: enabled
+  states: {coordinate: [8, 8], rotation: 0, state: enabled}
 
 blocks:
 
@@ -75,224 +72,171 @@ blocks:
 - name: pluto_rx_source
   id: iio_pluto_source
   parameters:
-    affinity: ''
-    alias: ''
-    bandwidth: rf_bandwidth
-    bbdc: 'True'
-    buffer_size: '65536'
-    comment: 'PlutoSDR RX'
-    filter: "''"
-    filter_source: "'Auto'"
-    fpass: '0'
-    frequency: center_freq
-    fstop: '0'
-    gain1: "'manual'"
-    len_tag_key: "''"
-    manual_gain1: rx_gain
-    quadrature: 'True'
-    rfdc: 'True'
-    samplerate: samp_rate
-    type: fc32
-    uri: device_uri
+    affinity: ''; alias: ''
+    bandwidth: rf_bandwidth; bbdc: 'True'; buffer_size: '65536'
+    filter: "''"; filter_source: "'Auto'"
+    fpass: '0'; frequency: center_freq; fstop: '0'
+    gain1: "'manual'"; manual_gain1: rx_gain
+    quadrature: 'True'; rfdc: 'True'
+    samplerate: samp_rate; type: fc32; uri: device_uri
   states: {coordinate: [80, 400], rotation: 0, state: enabled}
 
 - name: finite_capture
   id: blocks_head
   parameters:
-    affinity: ''
-    alias: ''
-    comment: '有限采集'
-    num_items: capture_samples
-    type: complex
-    vlen: '1'
+    affinity: ''; alias: ''
+    num_items: capture_samples; type: complex; vlen: '1'
   states: {coordinate: [352, 400], rotation: 0, state: enabled}
 
 - name: contest_rx_sink
   id: epy_block
   parameters:
     _source_code: |
-      import hashlib, json, os, struct, time, zlib
+      import hashlib, struct, time, zlib
       from pathlib import Path
       import numpy as np
       from gnuradio import gr
 
-      PREAMBLE_LEN = 64
-      SYNC_WORD = 0x1ACF
+      PLEN=64; SW=0x1ACF; RSP=6; RAL=0.35
+      rng=np.random.default_rng(42)
+      pb_=(rng.random(PLEN)>0.5).astype(np.uint8)
 
-      # ── precompute DSP templates once ──
-      _RRC_SPAN, _RRC_ALPHA = 6, 0.35
-      def _rrc(spb):  # cached per sps
-          a, sp = _RRC_ALPHA, _RRC_SPAN
-          t = np.arange(-sp, sp+1e-12, 1./spb)
-          pi_t = np.pi*t; f4at = 4*a*t
-          d = pi_t*(1-f4at**2); n = np.sin(pi_t*(1-a))+f4at*np.cos(pi_t*(1+a))
-          h = np.zeros_like(t); ok = np.abs(d)>=1e-12; h[ok]=n[ok]/d[ok]
-          i0 = np.argmin(np.abs(t)); h[i0]=1-a+4*a/np.pi
-          ts = 1/(4*a)
+      def _rrc(spb):
+          a,sp=RAL,RSP; t=np.arange(-sp,sp+1e-12,1./spb)
+          pt=np.pi*t; f4=4*a*t; d=pt*(1-f4**2)
+          n=np.sin(pt*(1-a))+f4*np.cos(pt*(1+a))
+          h=np.zeros_like(t); ok=np.abs(d)>=1e-12; h[ok]=n[ok]/d[ok]
+          h[np.argmin(np.abs(t))]=1-a+4*a/np.pi
+          ts=1/(4*a)
           for idx in np.where(np.abs(np.abs(t)-ts)<1e-6)[0]:
               h[idx]=(a/np.sqrt(2))*((1+2/np.pi)*np.sin(np.pi/(4*a))+(1-2/np.pi)*np.cos(np.pi/(4*a)))
-          e = np.sum(np.abs(h)**2)
-          if e>0: h/=np.sqrt(e)
+          e=np.sum(np.abs(h)**2)
+          if e>0:h/=np.sqrt(e)
           return np.float64(h)
 
-      def _qpsk_mod(bits):
-          bits = np.asarray(bits, dtype=np.uint8).ravel()
-          if len(bits)%2: bits=np.pad(bits,(0,1))
-          even=bits[0::2]; odd=bits[1::2]
-          I=1-2*even.astype(np.float64); Q=1-2*odd.astype(np.float64)
-          return ((I+1j*Q)/np.sqrt(2)).astype(np.complex128)
+      def _qmod(b):
+          b=np.asarray(b,dtype=np.uint8).ravel()
+          if len(b)%2:b=np.pad(b,(0,1))
+          I=1-2*b[0::2].astype(np.float64); Q=1-2*b[1::2].astype(np.float64)
+          return((I+1j*Q)/np.sqrt(2)).astype(np.complex128)
 
-      def _qpsk_demod(syms):
-          bits = np.empty(len(syms)*2, dtype=np.uint8)
-          bits[0::2] = (np.real(syms)<0).astype(np.uint8)
-          bits[1::2] = (np.imag(syms)<0).astype(np.uint8)
+      def _qdemod(s):
+          bits=np.empty(len(s)*2,dtype=np.uint8)
+          bits[0::2]=(np.real(s)<0).astype(np.uint8)
+          bits[1::2]=(np.imag(s)<0).astype(np.uint8)
           return bits
 
-      def _mf(iq, spb):
-          rrc = _rrc(spb); delay = _RRC_SPAN*spb
-          m = np.convolve(iq, rrc)
-          if len(m)>2*delay: m = m[delay:-delay]
+      def _mf(iq,spb):
+          r=_rrc(spb); d=RSP*spb; m=np.convolve(iq,r)
+          if len(m)>2*d:m=m[d:-d]
           return m
 
       class blk(gr.sync_block):
           def __init__(self, samp_rate=3000000, sps=2, team_name="MyTeam", capture_seconds=120):
-              gr.sync_block.__init__(self, name="QPSK RX", in_sig=[np.complex64], out_sig=None)
-              self.sr = int(samp_rate); self.sps = int(sps)
-              self.team = str(team_name)
-              self._buf = np.empty(0, dtype=np.complex64)
-              self._res = {}; self._meta = {}; self._done = set()
-              self._decode_count = 0
-              # prebuild preamble & sync templates
-              rng = np.random.default_rng(42)
-              pb = (rng.random(PREAMBLE_LEN)>0.5).astype(np.uint8)
-              self.ps = _qpsk_mod(np.repeat(pb,2))[:PREAMBLE_LEN]
-              sb = np.unpackbits(np.array([SYNC_WORD],dtype=">u2").view(np.uint8))
-              self.sb_syms = _qpsk_mod(sb)[:8]
-              self.sb = sb
+              gr.sync_block.__init__(self,name="QPSK RX",in_sig=[np.complex64],out_sig=None)
+              self.sr=int(samp_rate);self.sps=int(sps);self.team=str(team_name)
+              self._res={};self._meta={};self._done=set();self._dc=0
+              self._cap=12_000_000;self._buf=np.empty(self._cap,dtype=np.complex64)
+              self._pos=0
+              self.ps=_qmod(np.repeat(pb_,2))[:PLEN]
+              sb_=np.unpackbits(np.array([SW],dtype=">u2").view(np.uint8))
+              self.sb_sym=_qmod(sb_)[:8];self.sb=sb_
 
-          def _decode_one(self, iq, frame_start):
-              mf = _mf(iq, self.sps)
-              dly = _RRC_SPAN*self.sps
-              approx = frame_start+dly
-              lo=max(0,approx-3*dly); hi=min(len(mf)-PREAMBLE_LEN*self.sps, approx+3*dly)
-              bo,bp,bc=approx,0,-1.0
-              for off in range(lo, hi):
+          def _decode(self,iq,fs):
+              m=_mf(iq,self.sps);d=RSP*self.sps;ap=fs+d
+              lo=max(0,ap-3*d);hi=min(len(m)-PLEN*self.sps,ap+3*d)
+              bo,bp,bc=ap,0,-1.
+              for off in range(lo,hi):
                   for ph in range(self.sps):
-                      cd=mf[off+ph::self.sps][:PREAMBLE_LEN]
-                      d=float(np.abs(np.dot(cd,self.ps.conj())))
-                      if d>bc: bc,bo,bp=d,off,ph
+                      cd=m[off+ph::self.sps][:PLEN]
+                      dv=float(np.abs(np.dot(cd,self.ps.conj())))
+                      if dv>bc:bc,bo,bp=dv,off,ph
               iq0=bo+bp
-              while iq0<0: iq0+=self.sps
-              sf=mf[iq0::self.sps]; pos=PREAMBLE_LEN
-              if pos+40>len(sf): return None
-              rs=_qpsk_demod(sf[pos:pos+8])[:16]
-              if not np.array_equal(rs,self.sb[:len(rs)]): return None
-              pos+=8
-              hb=_qpsk_demod(sf[pos:pos+32])[:64]; pos+=32
+              while iq0<0:iq0+=self.sps
+              sf=m[iq0::self.sps];pos=PLEN
+              if pos+40>len(sf):return
+              rs=_qdemod(sf[pos:pos+8])[:16];pos+=8
+              if not np.array_equal(rs,self.sb[:len(rs)]):return
+              hb=_qdemod(sf[pos:pos+32])[:64];pos+=32
               ba=np.asarray(hb,dtype=np.uint8)
-              if len(ba)%8: ba=np.pad(ba,(0,8-len(ba)%8))
-              hdr=np.packbits(ba).tobytes()[:8]
-              fid=struct.unpack(">H",hdr[0:2])[0]; seq=struct.unpack(">H",hdr[2:4])[0]
-              total=struct.unpack(">H",hdr[4:6])[0]; plen=struct.unpack(">H",hdr[6:8])[0]
-              if plen==0 or plen>100000 or total==0: return None
-              pkt_bytes=plen+4; pkt_syms=(pkt_bytes*8+1)//2
-              if pos+pkt_syms>len(sf): return None
-              pb2=_qpsk_demod(sf[pos:pos+pkt_syms])[:pkt_bytes*8]; pos+=pkt_syms
-              ba2=np.asarray(pb2,dtype=np.uint8)
-              if len(ba2)%8: ba2=np.pad(ba2,(0,8-len(ba2)%8))
-              pkt=np.packbits(ba2).tobytes()[:pkt_bytes]
-              payload=pkt[:plen]; rc=struct.unpack(">I",pkt[plen:plen+4])[0]
-              if (zlib.crc32(payload)&0xFFFFFFFF)!=rc: return None
-              return (fid,seq,total,bytes(payload))
+              if len(ba)%8:ba=np.pad(ba,(0,8-len(ba)%8))
+              h=np.packbits(ba).tobytes()[:8]
+              fid=struct.unpack(">H",h[0:2])[0];seq=struct.unpack(">H",h[2:4])[0]
+              tot=struct.unpack(">H",h[4:6])[0];pl=struct.unpack(">H",h[6:8])[0]
+              if pl==0 or pl>100000 or tot==0:return
+              pb=pl+4;psym=(pb*8+1)//2
+              if pos+psym>len(sf):return
+              p2=_qdemod(sf[pos:pos+psym])[:pb*8]
+              ba2=np.asarray(p2,dtype=np.uint8)
+              if len(ba2)%8:ba2=np.pad(ba2,(0,8-len(ba2)%8))
+              pkt=np.packbits(ba2).tobytes()[:pb]
+              py=pkt[:pl];rc=struct.unpack(">I",pkt[pl:pl+4])[0]
+              if (zlib.crc32(py)&0xFFFFFFFF)!=rc:return
+              return(fid,seq,tot,bytes(py))
 
-          def _scan(self, iq):
-              """lightweight preamble scan on small window"""
-              # pre-shaped preamble template
-              rrc = _rrc(self.sps)
-              up = np.zeros(PREAMBLE_LEN*self.sps, dtype=np.complex128)
-              up[::self.sps] = self.ps
-              p_shaped = np.convolve(up, rrc)
-              L = len(p_shaped)
-              if len(iq)<L: return [],0
-              raw = np.abs(np.correlate(iq, p_shaped.conj(), mode="valid"))
-              # simple threshold: 0.3 * max
-              pm = float(np.max(raw))
-              pe = np.sum(np.abs(p_shaped)**2)
-              pw = np.abs(iq)**2
-              cs = np.concatenate([[0.],np.cumsum(pw)])
-              wp = cs[L:]-cs[:-L]
-              denom = np.sqrt(wp*pe)
-              corr = np.zeros(len(iq))
-              vn=len(raw); st=L-1
-              corr[st:st+vn] = np.divide(raw,denom,out=np.zeros(vn),where=denom>1e-12)
+          def _scan(self,data):
+              r=_rrc(self.sps);up=np.zeros(PLEN*self.sps,dtype=np.complex128)
+              up[::self.sps]=self.ps;psh=np.convolve(up,r);L=len(psh)
+              if len(data)<L:return[],0
+              raw=np.abs(np.correlate(data,psh.conj(),mode="valid"))
+              pe=np.sum(np.abs(psh)**2)
+              pw=np.abs(data)**2;cs=np.concatenate([[0.],np.cumsum(pw)])
+              denom=np.sqrt((cs[L:]-cs[:-L])*pe)
+              corr=np.zeros(len(data));vn=len(raw);st=L-1
+              corr[st:st+vn]=np.divide(raw,denom,out=np.zeros(vn),where=denom>1e-12)
               pm=float(np.max(corr))
-              if pm<0.18: return [],pm
-              thr=max(0.18,0.7*pm)
-              starts=[]; i=0
+              if pm<0.18:return[],pm
+              thr=max(0.18,0.7*pm);starts=[];i=0
               while i<len(corr):
-                  if corr[i]<thr: i+=1; continue
-                  j=i; pk=i; lim=min(len(corr),i+L)
+                  if corr[i]<thr:i+=1;continue
+                  j=i;pk=i;lim=min(len(corr),i+L)
                   while j<lim and corr[j]>=thr:
-                      if corr[j]>corr[pk]: pk=j; j+=1
+                      if corr[j]>corr[pk]:pk=j;j+=1
                   fs=max(0,pk-L+1)
-                  if not starts or fs-starts[-1]>L: starts.append(fs)
+                  if not starts or fs-starts[-1]>L:starts.append(fs)
                   i=max(j,pk+L//2)
               return starts,pm
 
-          def work(self, input_items, output_items):
-              x = np.asarray(input_items[0], dtype=np.complex64)
-              # fast append — use list then join
-              if not hasattr(self,'_chunks'): self._chunks=[]
-              self._chunks.append(x.copy())
-              if len(self._chunks)>200:  # flush periodically
-                  self._buf=np.concatenate([self._buf]+self._chunks)
-                  self._chunks=[]
-              # sliding window
-              if len(self._buf)>12_000_000:
-                  self._buf=self._buf[-10_000_000:]
-              # decode every ~2M accumulated samples
-              self._decode_count+=len(x)
-              if self._decode_count>=2_000_000 and len(self._buf)>1_000_000:
-                  self._decode_count=0
-                  # flush chunks first
-                  if self._chunks:
-                      self._buf=np.concatenate([self._buf]+self._chunks)
-                      self._chunks=[]
-                  win=self._buf[-4_000_000:].astype(np.complex128)
-                  win-=np.mean(win); pk=np.max(np.abs(win))
-                  if pk>1e-12: win/=pk
-                  win=win.astype(np.complex64)
-                  starts,peak=self._scan(win)
-                  if starts:
-                      offset=len(self._buf)-4_000_000
-                      for s in starts[:10]:
-                          r=self._decode_one(win,s)
-                          if r:
-                              fid,seq,total,payload=r
-                              key=(fid,seq)
-                              if key not in self._res:
-                                  self._res[key]=payload; self._meta[fid]=total
-                                  got=sum(1 for k in self._res if k[0]==fid)
-                                  pct=got/total*100 if total>0 else 0
-                                  print(f"[RX] fid={fid} seq={seq}/{total} ({pct:.0f}%) pk={peak:.3f}")
-                                  # check complete
-                                  if fid not in self._done and got>=total and total>0:
-                                      rcv={k[1]:v for k,v in self._res.items() if k[0]==fid}
-                                      if len(rcv)==total:
-                                          data=b"".join(rcv[i] for i in range(total))
-                                          fname=Path(f"{fid:02d}-{self.team}.txt")
-                                          fname.write_bytes(data)
-                                          sha=hashlib.sha256(data).hexdigest()[:16]
-                                          print(f"[RX] DONE {fname} {len(data)}B SHA256={sha}")
-                                          self._done.add(fid)
-              return len(x)
+          def work(self,input_items,output_items):
+              x=input_items[0];n=len(x)
+              # ring buffer — zero alloc
+              if self._pos+n<=self._cap:
+                  self._buf[self._pos:self._pos+n]=x;self._pos+=n
+              else:
+                  ov=self._pos+n-self._cap
+                  self._buf[:self._cap-ov]=self._buf[ov:];self._pos=self._cap-ov
+                  self._buf[self._pos:self._pos+n]=x;self._pos+=n
+              self._dc+=n
+              if self._dc>=2_500_000 and self._pos>2_000_000:
+                  self._dc=0
+                  nv=self._buf[:self._pos].copy().astype(np.complex128)
+                  nv-=np.mean(nv);pk=np.max(np.abs(nv))
+                  if pk>1e-12:nv/=pk
+                  starts,peak=self._scan(nv.astype(np.complex64))
+                  for s in starts[:8]:
+                      r=self._decode(nv.astype(np.complex64),s)
+                      if r:
+                          fid,seq,tot,py=r;k=(fid,seq)
+                          if k not in self._res:
+                              self._res[k]=py;self._meta[fid]=tot
+                              got=sum(1 for kk in self._res if kk[0]==fid)
+                              print(f"[RX] {fid}:{seq}/{tot} ({100*got//tot}%) pk={peak:.2f}")
+                              if fid not in self._done and got>=tot>0:
+                                  rcv={kk[1]:v for kk,v in self._res.items() if kk[0]==fid}
+                                  if len(rcv)==tot:
+                                      data=b"".join(rcv[i] for i in range(tot))
+                                      fn=Path(f"{fid:02d}-{self.team}.txt")
+                                      fn.write_bytes(data)
+                                      print(f"[RX] DONE {fn} {len(data)}B")
+                                      self._done.add(fid)
+              return n
 
           def stop(self):
               if not self._done:
-                  print(f"[RX] stop. packets={len(self._res)}")
+                  print(f"[RX] stop. pkts={len(self._res)}")
                   for fid in self._meta:
-                      got=sum(1 for k in self._res if k[0]==fid)
-                      print(f"  file{fid}: {got}/{self._meta[fid]}")
+                      g=sum(1 for k in self._res if k[0]==fid)
+                      print(f"  file{fid}: {g}/{self._meta[fid]}")
               return True
     affinity: ''
     alias: ''
