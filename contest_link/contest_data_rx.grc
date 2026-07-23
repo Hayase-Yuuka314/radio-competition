@@ -1,0 +1,321 @@
+options:
+  parameters:
+    author: Contest Team
+    catch_exceptions: 'True'
+    category: '[Contest]'
+    comment: '比赛RX:Pluto接收→QPSK解调→文件重组→输出00-队名.txt'
+    description: 'QPSK sps=2 3MHz 实时解码'
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    id: contest_data_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Contest Data RX - QPSK 3MHz
+  states:
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+
+- name: samp_rate
+  id: variable
+  parameters: {comment: '采样率(必须=TX)', value: '3000000'}
+  states: {coordinate: [16, 16], rotation: 0, state: enabled}
+
+- name: sps
+  id: variable
+  parameters: {comment: '每符号采样数(必须=TX)', value: '2'}
+  states: {coordinate: [200, 16], rotation: 0, state: enabled}
+
+- name: center_freq
+  id: variable
+  parameters: {comment: '中心频率(必须=TX)', value: '2432500000'}
+  states: {coordinate: [400, 16], rotation: 0, state: enabled}
+
+- name: device_uri
+  id: variable
+  parameters: {comment: 'RX Pluto URI', value: "'usb:1.5.5'"}
+  states: {coordinate: [16, 96], rotation: 0, state: enabled}
+
+- name: rx_gain
+  id: variable
+  parameters: {comment: 'RX增益 dB', value: '20.0'}
+  states: {coordinate: [240, 96], rotation: 0, state: enabled}
+
+- name: rf_bandwidth
+  id: variable
+  parameters: {comment: 'RF带宽', value: '4000000'}
+  states: {coordinate: [440, 96], rotation: 0, state: enabled}
+
+- name: team_name
+  id: variable
+  parameters: {comment: '队名(用于输出文件名)', value: "'MyTeam'"}
+  states: {coordinate: [16, 176], rotation: 0, state: enabled}
+
+- name: capture_seconds
+  id: variable
+  parameters: {comment: '采集时长 秒', value: '60.0'}
+  states: {coordinate: [240, 176], rotation: 0, state: enabled}
+
+- name: capture_samples
+  id: variable
+  parameters: {comment: '', value: int(capture_seconds * samp_rate)}
+  states: {coordinate: [440, 176], rotation: 0, state: enabled}
+
+- name: pluto_rx_source
+  id: iio_pluto_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: rf_bandwidth
+    bbdc: 'True'
+    buffer_size: '65536'
+    comment: 'PlutoSDR RX'
+    filter: "''"
+    filter_source: "'Auto'"
+    fpass: '0'
+    frequency: center_freq
+    fstop: '0'
+    gain1: "'manual'"
+    len_tag_key: "''"
+    manual_gain1: rx_gain
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rfdc: 'True'
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states: {coordinate: [80, 400], rotation: 0, state: enabled}
+
+- name: finite_capture
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: '有限采集'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: capture_samples
+    type: complex
+    vlen: '1'
+  states: {coordinate: [352, 400], rotation: 0, state: enabled}
+
+- name: contest_rx_sink
+  id: epy_block
+  parameters:
+    _source_code: |
+      import hashlib, json, os, struct, time, zlib
+      from pathlib import Path
+      import numpy as np
+      from gnuradio import gr
+
+      PREAMBLE_LEN = 64
+      SYNC_WORD = 0x1ACF
+      RRC_ALPHA = 0.35
+      RRC_SPAN = 6
+
+      def _rrc_coeffs(spb, alpha, span):
+          t = np.arange(-span, span+1e-12, 1./spb)
+          pi_t = np.pi*t; f4at = 4*alpha*t
+          d = pi_t*(1-f4at**2); n = np.sin(pi_t*(1-alpha))+f4at*np.cos(pi_t*(1+alpha))
+          h = np.zeros_like(t); ok = np.abs(d)>=1e-12; h[ok]=n[ok]/d[ok]
+          i0 = np.argmin(np.abs(t)); h[i0]=1-alpha+4*alpha/np.pi
+          ts = 1/(4*alpha)
+          for idx in np.where(np.abs(np.abs(t)-ts)<1e-6)[0]:
+              h[idx] = (alpha/np.sqrt(2))*((1+2/np.pi)*np.sin(np.pi/(4*alpha))+(1-2/np.pi)*np.cos(np.pi/(4*alpha)))
+          e = np.sum(np.abs(h)**2)
+          if e>0: h/=np.sqrt(e)
+          return np.float64(h)
+
+      def _qpsk_mod(bits):
+          bits = np.asarray(bits, dtype=np.uint8).ravel()
+          if len(bits)%2: bits=np.pad(bits,(0,1))
+          even=bits[0::2]; odd=bits[1::2]
+          I=1-2*even.astype(np.float64); Q=1-2*odd.astype(np.float64)
+          return ((I+1j*Q)/np.sqrt(2)).astype(np.complex128)
+
+      def _qpsk_demod(syms):
+          bits = np.empty(len(syms)*2, dtype=np.uint8)
+          bits[0::2] = (np.real(syms)<0).astype(np.uint8)
+          bits[1::2] = (np.imag(syms)<0).astype(np.uint8)
+          return bits
+
+      def _pulse_shape(syms, spb, alpha, span):
+          rrc = _rrc_coeffs(spb, alpha, span)
+          up = np.zeros(len(syms)*spb, dtype=np.complex128); up[::spb]=syms
+          return np.convolve(up, rrc)
+
+      def _mf(iq, spb, alpha, span):
+          rrc = _rrc_coeffs(spb, alpha, span); delay = span*spb
+          m = np.convolve(iq, rrc)
+          if len(m)>2*delay: m = m[delay:-delay]
+          return m
+
+      class blk(gr.sync_block):
+          def __init__(self, samp_rate=3000000, sps=2, team_name="MyTeam", capture_seconds=60):
+              gr.sync_block.__init__(self, name="QPSK RX", in_sig=[np.complex64], out_sig=None)
+              self.samp_rate = int(samp_rate); self.sps = int(sps)
+              self.team_name = str(team_name)
+              self._buf = np.empty(0, dtype=np.complex64)
+              self._total = 0; self._results = {}; self._metas = {}
+              self._decoded = set()
+
+          def _normalize(self, data):
+              data = np.asarray(data, dtype=np.complex128)
+              data -= np.mean(data)
+              peak = np.max(np.abs(data))
+              if peak>1e-12: data/=peak
+              return np.asarray(data, dtype=np.complex64)
+
+          def _decode_frame(self, iq, frame_start):
+              mf = _mf(iq, self.sps, RRC_ALPHA, RRC_SPAN)
+              delay = RRC_SPAN*self.sps
+              rng = np.random.default_rng(42)
+              pb = (rng.random(PREAMBLE_LEN)>0.5).astype(np.uint8)
+              ps = _qpsk_mod(np.repeat(pb,2))[:PREAMBLE_LEN]
+              sb = np.unpackbits(np.array([SYNC_WORD],dtype=">u2").view(np.uint8))
+              sb_syms = _qpsk_mod(sb)[:8]
+              # Search preamble in MF near expected position
+              approx = frame_start + delay
+              lo = max(0, approx-2*delay); hi = min(len(mf)-PREAMBLE_LEN*self.sps, approx+2*delay)
+              bo, bp, bc = approx, 0, -1.0
+              for off in range(lo, hi):
+                  for ph in range(self.sps):
+                      cd = mf[off+ph::self.sps][:PREAMBLE_LEN]
+                      d = float(np.abs(np.dot(cd, ps.conj())))
+                      if d>bc: bc, bo, bp = d, off, ph
+              iq0 = bo+bp
+              while iq0<0: iq0+=self.sps
+              sf = mf[iq0::self.sps]
+              pos = PREAMBLE_LEN
+              if pos+8+32+4>len(sf): return None
+              # sync check
+              rx_sync = _qpsk_demod(sf[pos:pos+8])[:16]
+              if not np.array_equal(rx_sync, sb[:len(rx_sync)]): return None
+              pos += 8
+              # header
+              hdr_bits = _qpsk_demod(sf[pos:pos+32])[:64]
+              pos += 32
+              ba = np.asarray(hdr_bits, dtype=np.uint8)
+              if len(ba)%8: ba=np.pad(ba,(0,8-len(ba)%8))
+              hdr = np.packbits(ba).tobytes()[:8]
+              fid = struct.unpack(">H",hdr[0:2])[0]
+              seq = struct.unpack(">H",hdr[2:4])[0]
+              total = struct.unpack(">H",hdr[4:6])[0]
+              plen = struct.unpack(">H",hdr[6:8])[0]
+              if plen==0 or plen>100000 or total==0: return None
+              # payload
+              pkt_bytes = plen+4
+              pkt_syms = (pkt_bytes*8+1)//2  # QPSK symbols for packet bits
+              if pos+pkt_syms>len(sf): return None
+              pkt_bits = _qpsk_demod(sf[pos:pos+pkt_syms])[:pkt_bytes*8]
+              pos += pkt_syms
+              ba2 = np.asarray(pkt_bits, dtype=np.uint8)
+              if len(ba2)%8: ba2=np.pad(ba2,(0,8-len(ba2)%8))
+              pkt = np.packbits(ba2).tobytes()[:pkt_bytes]
+              payload = pkt[:plen]; rx_crc = struct.unpack(">I",pkt[plen:plen+4])[0]
+              if (zlib.crc32(payload)&0xFFFFFFFF)!=rx_crc: return None
+              return (fid, seq, total, bytes(payload))
+
+          def _find_frames(self, iq):
+              rng = np.random.default_rng(42)
+              pb = (rng.random(PREAMBLE_LEN)>0.5).astype(np.uint8)
+              ps = _qpsk_mod(np.repeat(pb,2))[:PREAMBLE_LEN]
+              p_shaped = _pulse_shape(ps, self.sps, RRC_ALPHA, RRC_SPAN)
+              L = len(p_shaped)
+              pw = np.abs(iq)**2; cs=np.concatenate([[0.],np.cumsum(pw)])
+              wp = cs[L:]-cs[:-L]
+              raw = np.abs(np.correlate(iq, p_shaped.conj(), mode="valid"))
+              pe = np.sum(np.abs(p_shaped)**2); denom = np.sqrt(wp*pe)
+              corr = np.zeros(len(iq), dtype=np.float64)
+              vn=len(raw); st=L-1
+              corr[st:st+vn] = np.divide(raw,denom,out=np.zeros(vn,dtype=np.float64),where=denom>1e-12)
+              pm = float(np.max(corr))
+              if pm<0.20: return [], 0.0
+              thr = max(0.20, 0.70*pm)
+              starts=[]; i=0
+              while i<len(corr):
+                  if corr[i]<thr: i+=1; continue
+                  j=i; pk=i; lim=min(len(corr),i+L)
+                  while j<lim and corr[j]>=thr:
+                      if corr[j]>corr[pk]: pk=j
+                      j+=1
+                  fs = max(0, pk-L+1)
+                  if not starts or fs-starts[-1]>L: starts.append(fs)
+                  i = max(j, pk+L//2)
+              return starts, pm
+
+          def work(self, input_items, output_items):
+              x = np.asarray(input_items[0], dtype=np.complex64)
+              self._buf = np.concatenate([self._buf, x])
+              self._total += len(x)
+              # sliding window
+              if len(self._buf) > 20_000_000:
+                  self._buf = self._buf[-20_000_000:]
+              # try decode every ~2M samples
+              if len(self._buf)>500000 and self._total%2_000_000<len(x):
+                  iq = self._normalize(self._buf[-8_000_000:])
+                  starts, peak = self._find_frames(iq)
+                  if starts:
+                      offset = len(self._buf)-8_000_000
+                      for s in starts[:20]:
+                          r = self._decode_frame(iq, s)
+                          if r:
+                              fid, seq, total, payload = r
+                              key = (fid, seq)
+                              if key not in self._results:
+                                  self._results[key] = payload
+                                  self._metas[fid] = total
+                                  received = sum(1 for k in self._results if k[0]==fid)
+                                  print(f"[RX] pkt fid={fid} seq={seq}/{total} "
+                                        f"got={received}/{total} "
+                                        f"peak={peak:.3f}")
+
+              # check for complete files
+              for fid in list(self._metas.keys()):
+                  total = self._metas[fid]
+                  if fid in self._decoded: continue
+                  received = {k[1]:v for k,v in self._results.items() if k[0]==fid}
+                  if len(received)==total and total>0:
+                      data = b"".join(received[i] for i in range(total))
+                      fname = f"{fid:02d}-{self.team_name}.txt"
+                      Path(fname).write_bytes(data)
+                      print(f"[RX] COMPLETE: {fname} {len(data)}B")
+                      self._decoded.add(fid)
+              return len(x)
+
+          def stop(self):
+              if not self._decoded:
+                  print(f"[RX] stopped. found {len(self._results)} packets")
+                  for fid in self._metas:
+                      received = sum(1 for k in self._results if k[0]==fid)
+                      print(f"  file {fid}: {received}/{self._metas[fid]}")
+              return True
+    affinity: ''
+    alias: ''
+    capture_seconds: capture_seconds
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    sps: sps
+    team_name: team_name
+  states: {coordinate: [640, 400], rotation: 0, state: enabled}
+
+connections:
+  - [pluto_rx_source, '0', finite_capture, '0']
+  - [finite_capture, '0', contest_rx_sink, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0

@@ -1,0 +1,217 @@
+options:
+  parameters:
+    author: Contest Team
+    catch_exceptions: 'True'
+    category: '[Contest]'
+    comment: '比赛TX:读文件→QPSK+RRC→PlutoSDR 2430-2435MHz'
+    description: 'QPSK sps=2 3MHz 4096B/pkt 4.75min/100MB'
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    id: contest_data_tx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Contest Data TX - QPSK 3MHz
+  states:
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+
+- name: samp_rate
+  id: variable
+  parameters: {comment: '采样率 Hz', value: '3000000'}
+  states: {coordinate: [16, 16], rotation: 0, state: enabled}
+
+- name: sps
+  id: variable
+  parameters: {comment: '每符号采样数', value: '2'}
+  states: {coordinate: [200, 16], rotation: 0, state: enabled}
+
+- name: center_freq
+  id: variable
+  parameters: {comment: '中心频率 2430-2435MHz之间', value: '2432500000'}
+  states: {coordinate: [400, 16], rotation: 0, state: enabled}
+
+- name: device_uri
+  id: variable
+  parameters: {comment: 'TX Pluto URI', value: "'usb:1.5.5'"}
+  states: {coordinate: [16, 96], rotation: 0, state: enabled}
+
+- name: tx_attenuation
+  id: variable
+  parameters: {comment: 'TX衰减 dB', value: '10.0'}
+  states: {coordinate: [240, 96], rotation: 0, state: enabled}
+
+- name: input_file
+  id: variable
+  parameters: {comment: '待发送文件 (00.txt等)', value: "'00.txt'"}
+  states: {coordinate: [16, 176], rotation: 0, state: enabled}
+
+- name: amplitude
+  id: variable
+  parameters: {comment: '基带幅度', value: '0.4'}
+  states: {coordinate: [240, 176], rotation: 0, state: enabled}
+
+- name: payload_bytes
+  id: variable
+  parameters: {comment: '每包载荷字节', value: '4096'}
+  states: {coordinate: [440, 176], rotation: 0, state: enabled}
+
+- name: gap_samples
+  id: variable
+  parameters: {comment: '包间隔静默', value: '5000'}
+  states: {coordinate: [640, 176], rotation: 0, state: enabled}
+
+- name: rf_bandwidth
+  id: variable
+  parameters: {comment: 'RF带宽 Hz', value: '4000000'}
+  states: {coordinate: [16, 256], rotation: 0, state: enabled}
+
+- name: contest_tx_source
+  id: epy_block
+  parameters:
+    _source_code: |
+      import struct, zlib
+      from pathlib import Path
+      import numpy as np
+      from gnuradio import gr
+
+      PREAMBLE_LEN = 64
+      SYNC_WORD = 0x1ACF
+
+      def _rrc_coeffs(spb, alpha, span):
+          t = np.arange(-span, span+1e-12, 1./spb)
+          pi_t = np.pi*t; f4at = 4*alpha*t
+          d = pi_t*(1-f4at**2); n = np.sin(pi_t*(1-alpha))+f4at*np.cos(pi_t*(1+alpha))
+          h = np.zeros_like(t); ok = np.abs(d)>=1e-12; h[ok]=n[ok]/d[ok]
+          i0 = np.argmin(np.abs(t)); h[i0]=1-alpha+4*alpha/np.pi
+          ts = 1/(4*alpha)
+          for idx in np.where(np.abs(np.abs(t)-ts)<1e-6)[0]:
+              h[idx]=(alpha/np.sqrt(2))*((1+2/np.pi)*np.sin(np.pi/(4*alpha))+(1-2/np.pi)*np.cos(np.pi/(4*alpha)))
+          e = np.sum(np.abs(h)**2)
+          if e>0: h/=np.sqrt(e)
+          return np.float64(h)
+
+      def _qpsk_mod(bits):
+          bits = np.asarray(bits, dtype=np.uint8).ravel()
+          if len(bits)%2: bits=np.pad(bits,(0,1))
+          even=bits[0::2]; odd=bits[1::2]
+          I=1-2*even.astype(np.float64); Q=1-2*odd.astype(np.float64)
+          return ((I+1j*Q)/np.sqrt(2)).astype(np.complex128)
+
+      def _pulse_shape(syms, spb, alpha, span):
+          rrc = _rrc_coeffs(spb, alpha, span)
+          up = np.zeros(len(syms)*spb, dtype=np.complex128); up[::spb]=syms
+          return np.convolve(up, rrc)
+
+      class blk(gr.sync_block):
+          def __init__(self, input_path="00.txt", samp_rate=3000000, sps=2,
+                       amplitude=0.4, payload_bytes=4096, gap_samples=5000):
+              gr.sync_block.__init__(self, name="QPSK TX", in_sig=None, out_sig=[np.complex64])
+              self.input_path = str(input_path)
+              self.samp_rate = int(samp_rate); self.sps = int(sps)
+              self.amplitude = float(amplitude); self.payload_bytes = int(payload_bytes)
+              self.gap_samples = int(gap_samples)
+              self._waveform = np.empty(0, dtype=np.complex64); self._pos = 0
+
+          def start(self):
+              fp = Path(self.input_path)
+              if not fp.is_file(): raise FileNotFoundError(str(fp))
+              data = fp.read_bytes()
+              # derive file_id from filename: "00.txt" -> 0
+              try: fid = int(fp.stem) if fp.stem.isdigit() else 0
+              except: fid = 0
+              total = int(np.ceil(len(data)/self.payload_bytes))
+              print(f"[TX] file={fp.name} size={len(data)}B blocks={total} "
+                    f"{len(data)/(1024*1024):.1f}MB")
+
+              rng = np.random.default_rng(42)
+              pb = (rng.random(PREAMBLE_LEN)>0.5).astype(np.uint8)
+              pream_syms = _qpsk_mod(np.repeat(pb, 2))[:PREAMBLE_LEN]
+
+              sync_bits = np.unpackbits(np.array([SYNC_WORD], dtype=">u2").view(np.uint8))
+              sync_syms = _qpsk_mod(sync_bits)[:8]
+
+              bursts = []
+              for seq in range(total):
+                  payload = data[seq*self.payload_bytes:(seq+1)*self.payload_bytes]
+                  crc = struct.pack(">I", zlib.crc32(payload) & 0xFFFFFFFF)
+                  pkt = payload + crc
+                  pkt_bits = np.unpackbits(np.frombuffer(pkt, dtype=np.uint8))
+
+                  hdr = struct.pack(">HHHH", fid&0xFFFF, seq&0xFFFF, total&0xFFFF, len(payload)&0xFFFF)
+                  hdr_bits = np.unpackbits(np.frombuffer(hdr, dtype=np.uint8))
+
+                  syms = np.concatenate([
+                      pream_syms, sync_syms,
+                      _qpsk_mod(hdr_bits)[:32],
+                      _qpsk_mod(pkt_bits)])
+                  iq = _pulse_shape(syms, self.sps, 0.35, 6)
+                  gap = np.zeros(self.gap_samples, dtype=np.complex64)
+                  peak = float(np.max(np.abs(iq)))
+                  if peak>0: iq = iq*(self.amplitude/peak)
+                  bursts.append(np.concatenate([gap, iq.astype(np.complex64)]))
+
+              one_cycle = np.concatenate(bursts)
+              repeats = max(1, int(5*self.samp_rate/len(one_cycle)))
+              self._waveform = np.tile(one_cycle, repeats).astype(np.complex64)
+              self._pos = 0
+              print(f"[TX] cycle={len(one_cycle)} x{repeats} total={len(self._waveform)} "
+                    f"({len(self._waveform)/self.samp_rate:.1f}s)")
+              return True
+
+          def work(self, input_items, output_items):
+              out = output_items[0]; n = len(out)
+              indices = (np.arange(n, dtype=np.int64)+self._pos)%len(self._waveform)
+              out[:] = self._waveform[indices]
+              self._pos = (self._pos+n)%len(self._waveform)
+              return n
+    affinity: ''
+    alias: ''
+    amplitude: amplitude
+    gap_samples: gap_samples
+    input_path: input_file
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    payload_bytes: payload_bytes
+    samp_rate: samp_rate
+    sps: sps
+  states: {coordinate: [16, 400], rotation: 0, state: enabled}
+
+- name: pluto_tx_sink
+  id: iio_pluto_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    attenuation1: tx_attenuation
+    bandwidth: rf_bandwidth
+    buffer_size: '65536'
+    comment: 'PlutoSDR TX (接2.4G BPF)'
+    cyclic: 'False'
+    filter: "''"
+    filter_source: "'Auto'"
+    fpass: '0'
+    frequency: center_freq
+    fstop: '0'
+    len_tag_key: "''"
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states: {coordinate: [304, 400], rotation: 0, state: enabled}
+
+connections:
+  - [contest_tx_source, '0', pluto_tx_sink, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
