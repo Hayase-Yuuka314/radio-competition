@@ -1,0 +1,403 @@
+options:
+  parameters:
+    author: Local Adapt
+    catch_exceptions: 'True'
+    category: '[Learning Demo]'
+    comment: '自包含 PlutoSDR 2-FSK 收发一体流图 — 单板全双工'
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    id: local_fsk
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: 2-FSK TX+RX Local Test (single Pluto full-duplex)
+  states:
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+
+- name: samp_rate
+  id: variable
+  parameters: {comment: '采样率 TX/RX 一致', value: '1000000'}
+  states: {coordinate: [16, 16], rotation: 0, state: enabled}
+
+- name: center_freq
+  id: variable
+  parameters: {comment: '中心频率 Hz TX/RX 一致', value: '2440000000'}
+  states: {coordinate: [200, 16], rotation: 0, state: enabled}
+
+- name: device_uri
+  id: variable
+  parameters: {comment: 'Pluto URI', value: "'usb:1.5.5'"}
+  states: {coordinate: [400, 16], rotation: 0, state: enabled}
+
+- name: samples_per_symbol
+  id: variable
+  parameters: {comment: '每符号采样数 (100=10kbps)', value: '100'}
+  states: {coordinate: [600, 16], rotation: 0, state: enabled}
+
+- name: deviation_hz
+  id: variable
+  parameters: {comment: 'FSK频偏 Hz (bit0=-75k, bit1=+75k)', value: '75000.0'}
+  states: {coordinate: [16, 96], rotation: 0, state: enabled}
+
+- name: amplitude
+  id: variable
+  parameters: {comment: '基带幅度', value: '0.25'}
+  states: {coordinate: [240, 96], rotation: 0, state: enabled}
+
+- name: gap_samples
+  id: variable
+  parameters: {comment: '包前静默(找包用)', value: '20000'}
+  states: {coordinate: [400, 96], rotation: 0, state: enabled}
+
+- name: message
+  id: variable
+  parameters: {comment: '发送文本(最多64字节)', value: "'SYNCHELLO SDR TEST'"}
+  states: {coordinate: [16, 176], rotation: 0, state: enabled}
+
+- name: tx_attenuation
+  id: variable
+  parameters: {comment: 'TX衰减 dB (0=最强)', value: '0.0'}
+  states: {coordinate: [240, 176], rotation: 0, state: enabled}
+
+- name: rx_gain_db
+  id: variable
+  parameters: {comment: 'RX增益 dB (天线测试用10-20)', value: '10.0'}
+  states: {coordinate: [480, 176], rotation: 0, state: enabled}
+
+- name: rf_bandwidth
+  id: variable
+  parameters: {comment: 'RF带宽 Hz', value: '800000'}
+  states: {coordinate: [16, 256], rotation: 0, state: enabled}
+
+- name: capture_seconds
+  id: variable
+  parameters: {comment: '采集时长', value: '15.0'}
+  states: {coordinate: [240, 256], rotation: 0, state: enabled}
+
+- name: capture_samples
+  id: variable
+  parameters: {comment: '', value: int(capture_seconds * samp_rate)}
+  states: {coordinate: [400, 256], rotation: 0, state: enabled}
+
+- name: output_file
+  id: variable
+  parameters: {comment: '输出文件', value: "'received_text.txt'"}
+  states: {coordinate: [16, 336], rotation: 0, state: enabled}
+
+# ─── TX ───
+
+- name: simple_fsk_packet_source
+  id: epy_block
+  parameters:
+    _source_code: |
+      import struct, zlib
+      import numpy as np
+      from gnuradio import gr
+
+      PREAMBLE_BITS = 64
+      SYNC_BYTES = bytes.fromhex("DDAA55D3")
+      MAX_PAYLOAD_BYTES = 64
+
+      def _bytes_to_bits(data):
+          return np.unpackbits(np.frombuffer(data, dtype=np.uint8), bitorder="big")
+
+      class blk(gr.sync_block):
+          def __init__(self, message="SDR TEST", sample_rate=1000000,
+                       samples_per_symbol=100, deviation_hz=75000.0,
+                       amplitude=0.25, gap_samples=20000):
+              gr.sync_block.__init__(self, name="FSK TX Source",
+                                     in_sig=None, out_sig=[np.complex64])
+              payload = str(message).encode("utf-8")
+              if len(payload) > MAX_PAYLOAD_BYTES:
+                  raise ValueError("message too long")
+              self.sample_rate = int(sample_rate)
+              self.samples_per_symbol = int(samples_per_symbol)
+              self.deviation_hz = float(deviation_hz)
+              self.amplitude = float(amplitude)
+
+              preamble = (np.arange(PREAMBLE_BITS, dtype=np.uint8) & 1)
+              body = bytes((len(payload),)) + payload
+              crc = struct.pack(">I", zlib.crc32(body) & 0xFFFFFFFF)
+              bits = np.concatenate([
+                  preamble,
+                  _bytes_to_bits(SYNC_BYTES),
+                  _bytes_to_bits(body + crc),
+              ]).astype(np.uint8)
+
+              sym_freqs = np.where(bits == 0, -self.deviation_hz, self.deviation_hz)
+              sample_freqs = np.repeat(sym_freqs, self.samples_per_symbol)
+              phase_inc = 2.0 * np.pi * sample_freqs / self.sample_rate
+              active = self.amplitude * np.exp(1j * np.cumsum(phase_inc))
+              gap = np.zeros(gap_samples, dtype=np.complex64)
+              self.waveform = np.concatenate((gap, active.astype(np.complex64)))
+              self.position = 0
+              self.message = str(message)
+
+          def start(self):
+              print(f"[FSK TX] message={self.message} cycle={len(self.waveform)}samp")
+              return True
+
+          def work(self, input_items, output_items):
+              out = output_items[0]
+              n = len(out)
+              indices = (np.arange(n, dtype=np.int64) + self.position) % len(self.waveform)
+              out[:] = self.waveform[indices]
+              self.position = (self.position + n) % len(self.waveform)
+              return n
+    affinity: ''
+    alias: ''
+    amplitude: amplitude
+    deviation_hz: deviation_hz
+    gap_samples: gap_samples
+    maxoutbuf: '0'
+    message: message
+    minoutbuf: '0'
+    sample_rate: samp_rate
+    samples_per_symbol: samples_per_symbol
+  states: {coordinate: [16, 472], rotation: 0, state: enabled}
+
+- name: pluto_tx_sink
+  id: iio_pluto_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    attenuation1: tx_attenuation
+    bandwidth: rf_bandwidth
+    buffer_size: '32768'
+    comment: 'Pluto TX'
+    cyclic: 'False'
+    filter: "''"
+    filter_source: "'Auto'"
+    fpass: '0'
+    frequency: center_freq
+    fstop: '0'
+    len_tag_key: "''"
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states: {coordinate: [288, 472], rotation: 0, state: enabled}
+
+# ─── RX ───
+
+- name: pluto_rx_source
+  id: iio_pluto_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: rf_bandwidth
+    bbdc: 'True'
+    buffer_size: '32768'
+    comment: 'Pluto RX'
+    filter: "''"
+    filter_source: "'Auto'"
+    fpass: '0'
+    frequency: center_freq
+    fstop: '0'
+    gain1: "'manual'"
+    len_tag_key: "''"
+    manual_gain1: rx_gain_db
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rfdc: 'True'
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states: {coordinate: [16, 600], rotation: 0, state: enabled}
+
+- name: finite_capture
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: '有限时长采集'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: capture_samples
+    type: complex
+    vlen: '1'
+  states: {coordinate: [288, 600], rotation: 0, state: enabled}
+
+- name: rx_scope
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    autoscale: 'True'
+    comment: 'RX示波器'
+    entags: 'True'
+    grid: 'True'
+    gui_hint: ''
+    legend: 'True'
+    marker1: '-1'
+    name: '"RX Signal"'
+    nconnections: '1'
+    size: '1024'
+    srate: samp_rate
+    type: complex
+    update_time: '0.10'
+    ymax: '0.5'
+    ymin: '-0.5'
+  states: {coordinate: [560, 560], rotation: 0, state: enabled}
+
+- name: simple_fsk_packet_receiver
+  id: epy_block
+  parameters:
+    _source_code: |
+      import json, struct, zlib
+      from pathlib import Path
+      import numpy as np
+      from gnuradio import gr
+
+      PREAMBLE_BITS = 64
+      SYNC_BYTES = bytes.fromhex("DDAA55D3")
+      SYNC_BITS = np.unpackbits(np.frombuffer(SYNC_BYTES, dtype=np.uint8), bitorder="big")
+      PREAMBLE = (np.arange(PREAMBLE_BITS, dtype=np.uint8) & 1)
+      MAX_PAYLOAD_BYTES = 64
+
+      def _symbol_averages(prefix, start, count, sps):
+          guard = max(4, int(0.20 * sps))
+          nums = np.arange(count, dtype=np.int64)
+          begins = start + nums * sps + guard
+          ends = start + (nums + 1) * sps - guard
+          if begins[0] < 0 or ends[-1] >= len(prefix):
+              return None
+          return (prefix[ends] - prefix[begins]) / (ends - begins)
+
+      class blk(gr.sync_block):
+          def __init__(self, sample_rate=1000000, samples_per_symbol=100,
+                       deviation_hz=75000.0, output_text_path="received_text.txt"):
+              gr.sync_block.__init__(self, name="FSK RX Decoder",
+                                     in_sig=[np.complex64], out_sig=None)
+              self.sample_rate = int(sample_rate)
+              self.sps = int(samples_per_symbol)
+              self.deviation_hz = float(deviation_hz)
+              self.output_path = Path(str(output_text_path))
+              self.buffer = np.empty(0, dtype=np.complex64)
+              self.decoded = False
+
+          def _find_edges(self, samples):
+              power = np.abs(samples) ** 2
+              if len(power) < 30000: return []
+              smooth = np.convolve(power, np.ones(64)/64, mode="same")
+              hi = float(np.max(smooth))
+              if hi < 1e-12: return []
+              thr = hi * 0.30
+              active = smooth > thr
+              raw = np.flatnonzero(active[1:] & ~active[:-1]) + 1
+              edges = []
+              for v in raw:
+                  c = int(v + 32)
+                  if not edges or c - edges[-1] > 12000:
+                      edges.append(c)
+              return edges
+
+          def _decode(self, samples, rough_start):
+              inst = np.angle(np.conj(samples[:-1]) * samples[1:])
+              inst *= self.sample_rate / (2.0 * np.pi)
+              prefix = np.concatenate(([0.0], np.cumsum(inst, dtype=np.float64)))
+
+              best = None
+              for adj in range(-96, 97):
+                  start = int(rough_start + adj)
+                  vals = _symbol_averages(prefix, start, PREAMBLE_BITS, self.sps)
+                  if vals is None: continue
+                  f0 = float(np.median(vals[PREAMBLE == 0]))
+                  f1 = float(np.median(vals[PREAMBLE == 1]))
+                  sep = f1 - f0
+                  if sep < self.deviation_hz: continue
+                  mid = 0.5 * (f0 + f1)
+                  dec = (vals > mid).astype(np.uint8)
+                  matches = int(np.count_nonzero(dec == PREAMBLE))
+                  score = (matches, sep)
+                  if best is None or score > best[0]:
+                      best = (score, start, f0, f1)
+              if best is None or best[0][0] < 56: return None
+
+              _, start, f0, f1 = best
+              mid = 0.5 * (f0 + f1)
+              fixed = PREAMBLE_BITS + len(SYNC_BITS) + 8
+              hvals = _symbol_averages(prefix, start, fixed, self.sps)
+              if hvals is None: return None
+              hbits = (hvals > mid).astype(np.uint8)
+              if not np.array_equal(hbits[PREAMBLE_BITS:PREAMBLE_BITS+len(SYNC_BITS)], SYNC_BITS):
+                  return None
+
+              plen = int(np.packbits(hbits[PREAMBLE_BITS+len(SYNC_BITS):fixed], bitorder="big")[0])
+              if plen > MAX_PAYLOAD_BYTES: return None
+              total = PREAMBLE_BITS + len(SYNC_BITS) + (1 + plen + 4) * 8
+              avals = _symbol_averages(prefix, start, total, self.sps)
+              if avals is None: return None
+              abits = (avals > mid).astype(np.uint8)
+              dbits = abits[PREAMBLE_BITS + len(SYNC_BITS):]
+              data = np.packbits(dbits, bitorder="big").tobytes()
+              body = data[:1 + plen]
+              rx_crc = struct.unpack(">I", data[1+plen:5+plen])[0]
+              if (zlib.crc32(body) & 0xFFFFFFFF) != rx_crc: return None
+              try:
+                  msg = body[1:].decode("utf-8")
+              except: return None
+              return {
+                  "message": msg, "crc_ok": True,
+                  "f0_hz": f0, "f1_hz": f1, "cfo_hz": mid,
+                  "preamble_matches": int(best[0][0]),
+              }
+
+          def work(self, input_items, output_items):
+              if self.decoded: return 0
+              x = np.asarray(input_items[0], dtype=np.complex64)
+              self.buffer = np.concatenate((self.buffer, x))
+              if len(self.buffer) > 400000:
+                  self.buffer = self.buffer[-250000:]
+              # Try decode periodically
+              if len(self.buffer) > 90000 and len(self.buffer) % 16384 == 0:
+                  for edge in self._find_edges(self.buffer):
+                      result = self._decode(self.buffer, edge)
+                      if result:
+                          print(f"[FSK RX] SUCCESS! msg={result['message']}")
+                          print(f"[FSK RX] CFO={result['cfo_hz']:.0f}Hz "
+                                f"f0={result['f0_hz']:.0f} f1={result['f1_hz']:.0f}")
+                          self.decoded = True
+                          tgt = Path(self.output_path)
+                          tgt.write_text(result['message'] + "\n", encoding="utf-8")
+                          return len(x)
+              return len(x)
+
+          def stop(self):
+              if not self.decoded:
+                  print("[FSK RX] No packet found")
+                  Path("rx_status.json").write_text(
+                      '{"status":"NO_PACKET"}\n', encoding="utf-8")
+              return True
+    affinity: ''
+    alias: ''
+    deviation_hz: deviation_hz
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_text_path: output_file
+    sample_rate: samp_rate
+    samples_per_symbol: samples_per_symbol
+  states: {coordinate: [560, 672], rotation: 0, state: enabled}
+
+connections:
+  - [simple_fsk_packet_source, '0', pluto_tx_sink, '0']
+  - [pluto_rx_source, '0', finite_capture, '0']
+  - [finite_capture, '0', rx_scope, '0']
+  - [finite_capture, '0', simple_fsk_packet_receiver, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
