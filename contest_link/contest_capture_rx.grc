@@ -1,0 +1,125 @@
+options:
+  parameters:
+    author: Contest Team
+    catch_exceptions: 'True'
+    category: '[Contest]'
+    comment: 'RX只存原始IQ到文件,离线解码'
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    id: contest_capture_rx
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Contest RX Capture Only
+  states: {coordinate: [8, 8], rotation: 0, state: enabled}
+
+blocks:
+
+- name: samp_rate
+  id: variable
+  parameters: {comment: '采样率(必须=TX)', value: '3000000'}
+  states: {coordinate: [16, 16], rotation: 0, state: enabled}
+
+- name: center_freq
+  id: variable
+  parameters: {comment: '中心频率', value: '2432500000'}
+  states: {coordinate: [200, 16], rotation: 0, state: enabled}
+
+- name: device_uri
+  id: variable
+  parameters: {comment: 'RX Pluto URI', value: "'usb:1.6.5'"}
+  states: {coordinate: [16, 96], rotation: 0, state: enabled}
+
+- name: rx_gain
+  id: variable
+  parameters: {comment: 'RX增益 dB', value: '20.0'}
+  states: {coordinate: [240, 96], rotation: 0, state: enabled}
+
+- name: rf_bandwidth
+  id: variable
+  parameters: {comment: 'RF带宽', value: '4000000'}
+  states: {coordinate: [16, 176], rotation: 0, state: enabled}
+
+- name: capture_seconds
+  id: variable
+  parameters: {comment: '采集时长', value: '120.0'}
+  states: {coordinate: [240, 176], rotation: 0, state: enabled}
+
+- name: capture_samples
+  id: variable
+  parameters: {comment: '', value: int(capture_seconds*samp_rate)}
+  states: {coordinate: [440, 176], rotation: 0, state: enabled}
+
+- name: iq_file
+  id: variable
+  parameters: {comment: '输出IQ文件', value: "'rx_capture.c64'"}
+  states: {coordinate: [16, 256], rotation: 0, state: enabled}
+
+- name: pluto_rx_source
+  id: iio_pluto_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: rf_bandwidth
+    bbdc: 'True'
+    buffer_size: '262144'
+    comment: 'Pluto RX'
+    filter: "''"
+    filter_source: "'Auto'"
+    fpass: '0'
+    frequency: center_freq
+    fstop: '0'
+    gain1: "'manual'"
+    len_tag_key: "''"
+    manual_gain1: rx_gain
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rfdc: 'True'
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states: {coordinate: [80, 400], rotation: 0, state: enabled}
+
+- name: finite_capture
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: '有限采集'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: capture_samples
+    type: complex
+    vlen: '1'
+  states: {coordinate: [352, 400], rotation: 0, state: enabled}
+
+- name: iq_file_sink
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    comment: '保存原始IQ'
+    file: iq_file
+    type: complex
+    unbuffered: 'False'
+    vlen: '1'
+  states: {coordinate: [608, 400], rotation: 0, state: enabled}
+
+connections:
+  - [pluto_rx_source, '0', finite_capture, '0']
+  - [finite_capture, '0', iq_file_sink, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
