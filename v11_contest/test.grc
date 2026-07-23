@@ -109,7 +109,7 @@ blocks:
   id: variable
   parameters:
     comment: RX Pluto URI
-    value: '''usb:1.3.5'''
+    value: '''usb:1.4.5'''
   states:
     bus_sink: false
     bus_source: false
@@ -120,8 +120,9 @@ blocks:
 - name: device_uri_0
   id: variable
   parameters:
-    comment: TX Pluto URI (必须和RX是两台不同的设备!)
-    value: '''usb:1.10.5'''
+    comment: "TX Pluto URI (\u5FC5\u987B\u548CRX\u662F\u4E24\u53F0\u4E0D\u540C\u7684\
+      \u8BBE\u5907!)"
+    value: '''usb:1.4.5'''
   states:
     bus_sink: false
     bus_source: false
@@ -180,8 +181,8 @@ blocks:
 - name: output_dir
   id: variable
   parameters:
-    comment: "\u8F93\u51FA\u76EE\u5F55"
-    value: '''.'''
+    comment: "输出目录"
+    value: "r'C:\\Users\\HP\\Desktop\\radio\\radio-competition\\v11_contest'"
   states:
     bus_sink: false
     bus_source: false
@@ -288,7 +289,8 @@ blocks:
 - name: tx_attenuation
   id: variable
   parameters:
-    comment: "TX\u8870\u51CF dB(\u540C\u677F\u6D4B\u8BD5\u514830,\u5F02\u677F\u5148\u8BD560)"
+    comment: "TX\u8870\u51CF dB(\u540C\u677F\u6D4B\u8BD5\u514830,\u5F02\u677F\u5148\
+      \u8BD560)"
     value: '30.0'
   states:
     bus_sink: false

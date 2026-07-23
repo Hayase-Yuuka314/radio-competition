@@ -3,11 +3,16 @@ options:
     author: Contest Team
     catch_exceptions: 'True'
     category: '[Contest]'
-    comment: '比赛RX: Pluto接收→突发检测→CFO估计→DSSS解扩→去交织→维特比→解扰→CRC→文件重组'
+    cmake_opt: ''
+    comment: "\u6BD4\u8D5BRX: Pluto\u63A5\u6536\u2192\u7A81\u53D1\u68C0\u6D4B\u2192\
+      CFO\u4F30\u8BA1\u2192DSSS\u89E3\u6269\u2192\u53BB\u4EA4\u7EC7\u2192\u7EF4\u7279\
+      \u6BD4\u2192\u89E3\u6270\u2192CRC\u2192\u6587\u4EF6\u91CD\u7EC4"
+    copyright: ''
     description: ''
     gen_cmake: 'On'
     gen_linking: dynamic
     generate_options: no_gui
+    hier_block_src_path: '.:'
     id: contest_rx
     max_nouts: '0'
     output_language: python
@@ -20,233 +25,253 @@ options:
     sizing_mode: fixed
     thread_safe_setters: ''
     title: Contest RX - DSSS SF127 + FH
+    window_size: (1000,1000)
   states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
     coordinate: [8, 8]
     rotation: 0
     state: enabled
 
 blocks:
-
-- name: samp_rate
-  id: variable
-  parameters: {comment: '采样率(必须=TX)', value: '1000000'}
-  states: {coordinate: [16, 16], rotation: 0, state: enabled}
-
-- name: samples_per_chip
-  id: variable
-  parameters: {comment: '每码片采样数(必须=TX)', value: '4'}
-  states: {coordinate: [200, 16], rotation: 0, state: enabled}
-
-- name: code_length
-  id: variable
-  parameters: {comment: 'DSSS扩频码长(必须=TX)', value: '127'}
-  states: {coordinate: [400, 16], rotation: 0, state: enabled}
-
-- name: team_id
-  id: variable
-  parameters: {comment: '队伍ID(必须=TX)', value: '0'}
-  states: {coordinate: [600, 16], rotation: 0, state: enabled}
-
-- name: shared_key
-  id: variable
-  parameters: {comment: '共享密钥(必须=TX)', value: "'contest-key-2026'"}
-  states: {coordinate: [16, 96], rotation: 0, state: enabled}
-
-- name: device_uri
-  id: variable
-  parameters: {comment: 'RX Pluto URI', value: "'ip:192.168.2.1'"}
-  states: {coordinate: [16, 176], rotation: 0, state: enabled}
-
-- name: center_freq
-  id: variable
-  parameters: {comment: '中心频率 Hz(必须=TX)', value: '2450000000'}
-  states: {coordinate: [240, 176], rotation: 0, state: enabled}
-
-- name: rx_gain
-  id: variable
-  parameters: {comment: 'RX增益 dB(近距离20,远距离40)', value: '30.0'}
-  states: {coordinate: [480, 176], rotation: 0, state: enabled}
-
-- name: capture_seconds
-  id: variable
-  parameters: {comment: '采集时长 秒', value: '30.0'}
-  states: {coordinate: [720, 176], rotation: 0, state: enabled}
-
 - name: capture_samples
   id: variable
-  parameters: {comment: '采集样本数', value: int(capture_seconds * samp_rate)}
-  states: {coordinate: [896, 176], rotation: 0, state: enabled}
-
-- name: rf_bandwidth
+  parameters:
+    comment: "\u91C7\u96C6\u6837\u672C\u6570"
+    value: int(capture_seconds * samp_rate)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [896, 176]
+    rotation: 0
+    state: enabled
+- name: capture_seconds
   id: variable
-  parameters: {comment: 'RF带宽 Hz', value: '1000000'}
-  states: {coordinate: [1104, 176], rotation: 0, state: enabled}
-
-- name: output_dir
+  parameters:
+    comment: "\u91C7\u96C6\u65F6\u957F \u79D2"
+    value: '30.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [720, 176]
+    rotation: 0
+    state: enabled
+- name: center_freq
   id: variable
-  parameters: {comment: '输出目录', value: "'.'"}
-  states: {coordinate: [16, 256], rotation: 0, state: enabled}
-
+  parameters:
+    comment: "\u4E2D\u5FC3\u9891\u7387 Hz(\u5FC5\u987B=TX)"
+    value: '2440000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [240, 176]
+    rotation: 0
+    state: enabled
+- name: code_length
+  id: variable
+  parameters:
+    comment: "DSSS\u6269\u9891\u7801\u957F(\u5FC5\u987B=TX)"
+    value: '127'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [400, 16]
+    rotation: 0
+    state: enabled
+- name: device_uri
+  id: variable
+  parameters:
+    comment: RX Pluto URI
+    value: '''usb:1.3.5'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 176]
+    rotation: 0
+    state: enabled
 - name: hop_enabled
   id: variable
-  parameters: {comment: '跳频开关(必须=TX)', value: '1'}
-  states: {coordinate: [200, 256], rotation: 0, state: enabled}
-
+  parameters:
+    comment: "\u8DF3\u9891\u5F00\u5173(\u5FC5\u987B=TX)"
+    value: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 256]
+    rotation: 0
+    state: enabled
+- name: output_dir
+  id: variable
+  parameters:
+    comment: "\u8F93\u51FA\u76EE\u5F55"
+    value: '''.'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 256]
+    rotation: 0
+    state: enabled
+- name: rf_bandwidth
+  id: variable
+  parameters:
+    comment: "RF\u5E26\u5BBD Hz"
+    value: '1000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1104, 176]
+    rotation: 0
+    state: enabled
 - name: rx_buffer_samples
   id: variable
-  parameters: {comment: 'Pluto RX缓冲', value: '32768'}
-  states: {coordinate: [400, 256], rotation: 0, state: enabled}
-
-- name: pluto_rx_source
-  id: iio_pluto_source
   parameters:
-    affinity: ''
-    alias: ''
-    bandwidth: rf_bandwidth
-    bbdc: 'True'
-    buffer_size: rx_buffer_samples
-    comment: 'PlutoSDR接收'
-    filter: "''"
-    filter_source: "'Auto'"
-    fpass: '0'
-    frequency: center_freq
-    fstop: '0'
-    gain1: "'manual'"
-    len_tag_key: "''"
-    manual_gain1: rx_gain
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    quadrature: 'True'
-    rfdc: 'True'
-    samplerate: samp_rate
-    type: fc32
-    uri: device_uri
-  states: {coordinate: [80, 432], rotation: 0, state: enabled}
-
-- name: finite_capture
-  id: blocks_head
+    comment: "Pluto RX\u7F13\u51B2"
+    value: '32768'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [400, 256]
+    rotation: 0
+    state: enabled
+- name: rx_gain
+  id: variable
   parameters:
-    affinity: ''
-    alias: ''
-    comment: '有限时长采集'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    num_items: capture_samples
-    type: complex
-    vlen: '1'
-  states: {coordinate: [352, 432], rotation: 0, state: enabled}
-
+    comment: "RX\u589E\u76CA dB(\u8FD1\u8DDD\u79BB20,\u8FDC\u8DDD\u79BB40)"
+    value: '30.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 176]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: "\u91C7\u6837\u7387(\u5FC5\u987B=TX)"
+    value: '1000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 16]
+    rotation: 0
+    state: enabled
+- name: samples_per_chip
+  id: variable
+  parameters:
+    comment: "\u6BCF\u7801\u7247\u91C7\u6837\u6570(\u5FC5\u987B=TX)"
+    value: '4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 16]
+    rotation: 0
+    state: enabled
+- name: shared_key
+  id: variable
+  parameters:
+    comment: "\u5171\u4EAB\u5BC6\u94A5(\u5FC5\u987B=TX)"
+    value: '''contest-key-2026'''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 96]
+    rotation: 0
+    state: enabled
+- name: team_id
+  id: variable
+  parameters:
+    comment: "\u961F\u4F0DID(\u5FC5\u987B=TX)"
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [600, 16]
+    rotation: 0
+    state: enabled
 - name: contest_rx_sink
   id: epy_block
   parameters:
-    _source_code: |
-      import json, sys, time
-      from pathlib import Path
-      import numpy as np
-      from gnuradio import gr
-
-      for _d in (Path.cwd(), Path.cwd()/"v11_contest",
-                 Path(r"C:\Users\HP\Desktop\radio\radio-competition\v11_contest")):
-          if (_d/"contest_codec.py").is_file() and str(_d) not in sys.path:
-              sys.path.insert(0, str(_d))
-      from contest_codec import (ContestConfig, StreamingDecoder,
-                                  decode_capture)
-
-      class blk(gr.sync_block):
-          def __init__(self, shared_key="contest-key-2026", sample_rate=1000000,
-                       samples_per_chip=4, code_length=127, team_id=0,
-                       hop_enabled=1, output_dir="."):
-              gr.sync_block.__init__(self, name="Contest RX Sink",
-                                     in_sig=[np.complex64], out_sig=None)
-              self.config = ContestConfig(
-                  sample_rate=int(sample_rate),
-                  samples_per_chip=int(samples_per_chip),
-                  code_length=int(code_length), team_id=int(team_id),
-                  shared_key=str(shared_key),
-                  hop_enabled=bool(int(hop_enabled)))
-              self.output_dir = Path(str(output_dir))
-              self.decoder = StreamingDecoder(self.config, str(self.output_dir))
-              self._buffer = np.empty(0, dtype=np.complex64)
-              self._decoded = False
-              self._sample_count = 0
-
-          def work(self, input_items, output_items):
-              if self._decoded: return 0
-              x = np.asarray(input_items[0], dtype=np.complex64).ravel()
-              self._buffer = np.concatenate((self._buffer, x))
-              self._sample_count += len(x)
-              # Print status periodically
-              if self._sample_count % 500000 < len(x):
-                  pwr = 10*np.log10(np.mean(np.abs(x)**2)+1e-20)
-                  peak = 20*np.log10(np.max(np.abs(x))+1e-20)
-                  print(f"[RX] buf={len(self._buffer)} count={self._sample_count} "
-                        f"pwr={pwr:.1f}dB pk={peak:.1f}dB")
-              return len(x)
-
-          def stop(self):
-              if self._decoded: return True
-              print(f"[RX] captured {len(self._buffer)} samples, decoding...")
-              # Normalize
-              buf = np.asarray(self._buffer, dtype=np.complex128)
-              buf -= np.mean(buf)
-              peak = np.max(np.abs(buf))
-              if peak > 1e-12: buf /= peak
-              buf = buf.astype(np.complex64)
-
-              results = decode_capture(buf, self.config)
-              print(f"[RX] packets found: {len(results)}")
-              for r in results:
-                  print(f"  file={r.file_id:08x} seq={r.seq}/{r.total} "
-                        f"len={len(r.payload)}B sync={r.sync_score:.3f} "
-                        f"cfo={r.cfo_hz:.0f}Hz CRC={'OK' if r.crc_ok else 'FAIL'}")
-
-              # Assemble files
-              for fid in set(r.file_id for r in results):
-                  pkts = sorted([r for r in results if r.file_id == fid],
-                                key=lambda r: r.seq)
-                  total = pkts[0].total if pkts else 0
-                  received = {r.seq: r.payload for r in pkts}
-                  complete = len(received) == total and total > 0
-                  if complete:
-                      data = b"".join(received[i] for i in range(total))
-                      import hashlib
-                      fname = f"decoded_file_{fid:08x}.bin"
-                      fpath = self.output_dir / fname
-                      tmp = fpath.with_suffix(fpath.suffix + ".tmp")
-                      tmp.write_bytes(data)
-                      import os; os.replace(tmp, fpath)
-                      sha = hashlib.sha256(data).hexdigest()
-                      print(f"[RX] COMPLETE: {fname} size={len(data)}B "
-                            f"SHA256={sha[:16]}...")
-                  else:
-                      missing = sorted(set(range(total)) - set(received.keys()))
-                      print(f"[RX] partial: file={fid:08x} got={len(received)}/{total}"
-                            f" missing={missing[:5]}...")
-
-              # Write status
-              status = {
-                  "packets_found": len(results),
-                  "unique_packets": len(set((r.file_id, r.seq) for r in results)),
-                  "files_complete": sum(1 for fid in set(r.file_id for r in results)
-                                        if len(set(r.seq for r in results if r.file_id==fid))
-                                        == next((r.total for r in results if r.file_id==fid), 0)),
-                  "config": {
-                      "code_length": self.config.code_length,
-                      "processing_gain_db": self.config.processing_gain_db,
-                      "hop_enabled": self.config.hop_enabled,
-                      "team_id": self.config.team_id,
-                  },
-                  "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-              }
-              sfile = self.output_dir / "rx_status.json"
-              sfile.write_text(json.dumps(status, ensure_ascii=False, indent=2)+"\n",
-                               encoding="utf-8")
-              print(f"[RX] status -> {sfile}")
-              self._decoded = True
-              return True
+    _source_code: "import json, sys, time\nfrom pathlib import Path\nimport numpy\
+      \ as np\nfrom gnuradio import gr\n\nfor _d in (Path.cwd(), Path.cwd()/\"v11_contest\"\
+      ,\n           Path(r\"C:\\Users\\HP\\Desktop\\radio\\radio-competition\\v11_contest\"\
+      )):\n    if (_d/\"contest_codec.py\").is_file() and str(_d) not in sys.path:\n\
+      \        sys.path.insert(0, str(_d))\nfrom contest_codec import (ContestConfig,\
+      \ StreamingDecoder,\n                            decode_capture)\n\nclass blk(gr.sync_block):\n\
+      \    def __init__(self, shared_key=\"contest-key-2026\", sample_rate=1000000,\n\
+      \                 samples_per_chip=4, code_length=127, team_id=0,\n        \
+      \         hop_enabled=1, output_dir=\".\"):\n        gr.sync_block.__init__(self,\
+      \ name=\"Contest RX Sink\",\n                               in_sig=[np.complex64],\
+      \ out_sig=None)\n        self.config = ContestConfig(\n            sample_rate=int(sample_rate),\n\
+      \            samples_per_chip=int(samples_per_chip),\n            code_length=int(code_length),\
+      \ team_id=int(team_id),\n            shared_key=str(shared_key),\n         \
+      \   hop_enabled=bool(int(hop_enabled)))\n        self.output_dir = Path(str(output_dir))\n\
+      \        self.decoder = StreamingDecoder(self.config, str(self.output_dir))\n\
+      \        self._buffer = np.empty(0, dtype=np.complex64)\n        self._decoded\
+      \ = False\n        self._sample_count = 0\n\n    def work(self, input_items,\
+      \ output_items):\n        if self._decoded: return 0\n        x = np.asarray(input_items[0],\
+      \ dtype=np.complex64).ravel()\n        self._buffer = np.concatenate((self._buffer,\
+      \ x))\n        self._sample_count += len(x)\n        # Print status periodically\n\
+      \        if self._sample_count % 500000 < len(x):\n            pwr = 10*np.log10(np.mean(np.abs(x)**2)+1e-20)\n\
+      \            peak = 20*np.log10(np.max(np.abs(x))+1e-20)\n            print(f\"\
+      [RX] buf={len(self._buffer)} count={self._sample_count} \"\n               \
+      \   f\"pwr={pwr:.1f}dB pk={peak:.1f}dB\")\n        return len(x)\n\n    def\
+      \ stop(self):\n        if self._decoded: return True\n        print(f\"[RX]\
+      \ captured {len(self._buffer)} samples, decoding...\")\n        # Normalize\n\
+      \        buf = np.asarray(self._buffer, dtype=np.complex128)\n        buf -=\
+      \ np.mean(buf)\n        peak = np.max(np.abs(buf))\n        if peak > 1e-12:\
+      \ buf /= peak\n        buf = buf.astype(np.complex64)\n\n        results = decode_capture(buf,\
+      \ self.config)\n        print(f\"[RX] packets found: {len(results)}\")\n   \
+      \     for r in results:\n            print(f\"  file={r.file_id:08x} seq={r.seq}/{r.total}\
+      \ \"\n                  f\"len={len(r.payload)}B sync={r.sync_score:.3f} \"\n\
+      \                  f\"cfo={r.cfo_hz:.0f}Hz CRC={'OK' if r.crc_ok else 'FAIL'}\"\
+      )\n\n        # Assemble files\n        for fid in set(r.file_id for r in results):\n\
+      \            pkts = sorted([r for r in results if r.file_id == fid],\n     \
+      \                     key=lambda r: r.seq)\n            total = pkts[0].total\
+      \ if pkts else 0\n            received = {r.seq: r.payload for r in pkts}\n\
+      \            complete = len(received) == total and total > 0\n            if\
+      \ complete:\n                data = b\"\".join(received[i] for i in range(total))\n\
+      \                import hashlib\n                fname = f\"decoded_file_{fid:08x}.bin\"\
+      \n                fpath = self.output_dir / fname\n                tmp = fpath.with_suffix(fpath.suffix\
+      \ + \".tmp\")\n                tmp.write_bytes(data)\n                import\
+      \ os; os.replace(tmp, fpath)\n                sha = hashlib.sha256(data).hexdigest()\n\
+      \                print(f\"[RX] COMPLETE: {fname} size={len(data)}B \"\n    \
+      \                  f\"SHA256={sha[:16]}...\")\n            else:\n         \
+      \       missing = sorted(set(range(total)) - set(received.keys()))\n       \
+      \         print(f\"[RX] partial: file={fid:08x} got={len(received)}/{total}\"\
+      \n                      f\" missing={missing[:5]}...\")\n\n        # Write status\n\
+      \        status = {\n            \"packets_found\": len(results),\n        \
+      \    \"unique_packets\": len(set((r.file_id, r.seq) for r in results)),\n  \
+      \          \"files_complete\": sum(1 for fid in set(r.file_id for r in results)\n\
+      \                                  if len(set(r.seq for r in results if r.file_id==fid))\n\
+      \                                  == next((r.total for r in results if r.file_id==fid),\
+      \ 0)),\n            \"config\": {\n                \"code_length\": self.config.code_length,\n\
+      \                \"processing_gain_db\": self.config.processing_gain_db,\n \
+      \               \"hop_enabled\": self.config.hop_enabled,\n                \"\
+      team_id\": self.config.team_id,\n            },\n            \"timestamp\":\
+      \ time.strftime(\"%Y-%m-%d %H:%M:%S\"),\n        }\n        sfile = self.output_dir\
+      \ / \"rx_status.json\"\n        sfile.write_text(json.dumps(status, ensure_ascii=False,\
+      \ indent=2)+\"\\n\",\n                         encoding=\"utf-8\")\n       \
+      \ print(f\"[RX] status -> {sfile}\")\n        self._decoded = True\n       \
+      \ return True\n"
     affinity: ''
     alias: ''
     code_length: code_length
+    comment: ''
     hop_enabled: hop_enabled
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -255,11 +280,70 @@ blocks:
     samples_per_chip: samples_per_chip
     shared_key: shared_key
     team_id: team_id
-  states: {coordinate: [640, 432], rotation: 0, state: enabled}
+  states:
+    _io_cache: ('Contest RX Sink', 'blk', [('shared_key', "'contest-key-2026'"), ('sample_rate',
+      '1000000'), ('samples_per_chip', '4'), ('code_length', '127'), ('team_id', '0'),
+      ('hop_enabled', '1'), ('output_dir', "'.'")], [('0', 'complex', 1)], [], '',
+      ['output_dir'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 432]
+    rotation: 0
+    state: enabled
+- name: finite_capture
+  id: blocks_head
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "\u6709\u9650\u65F6\u957F\u91C7\u96C6"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: capture_samples
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 432]
+    rotation: 0
+    state: enabled
+- name: pluto_rx_source
+  id: iio_pluto_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: rf_bandwidth
+    bbdc: 'True'
+    buffer_size: rx_buffer_samples
+    comment: "PlutoSDR\u63A5\u6536"
+    filter: ''''''
+    filter_source: '''Auto'''
+    fpass: '0'
+    frequency: center_freq
+    fstop: '0'
+    gain1: '''manual'''
+    len_tag_key: ''''''
+    manual_gain1: rx_gain
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rfdc: 'True'
+    samplerate: samp_rate
+    type: fc32
+    uri: device_uri
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [80, 432]
+    rotation: 0
+    state: enabled
 
 connections:
-  - [pluto_rx_source, '0', finite_capture, '0']
-  - [finite_capture, '0', contest_rx_sink, '0']
+- [finite_capture, '0', contest_rx_sink, '0']
+- [pluto_rx_source, '0', finite_capture, '0']
 
 metadata:
   file_format: 1

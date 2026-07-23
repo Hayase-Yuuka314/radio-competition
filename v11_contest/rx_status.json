@@ -1,0 +1,12 @@
+{
+  "packets_found": 0,
+  "unique_packets": 0,
+  "files_complete": 0,
+  "config": {
+    "code_length": 127,
+    "processing_gain_db": 21.03803720955957,
+    "hop_enabled": true,
+    "team_id": 0
+  },
+  "timestamp": "2026-07-23 11:35:20"
+}
