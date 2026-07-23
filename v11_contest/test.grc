@@ -288,8 +288,8 @@ blocks:
 - name: tx_attenuation
   id: variable
   parameters:
-    comment: "TX\u8870\u51CF dB(>60\u9996\u6B21\u6D4B\u8BD5)"
-    value: '60.0'
+    comment: "TX\u8870\u51CF dB(\u540C\u677F\u6D4B\u8BD5\u514830,\u5F02\u677F\u5148\u8BD560)"
+    value: '30.0'
   states:
     bus_sink: false
     bus_source: false
@@ -539,7 +539,7 @@ blocks:
     alpha7: '1.0'
     alpha8: '1.0'
     alpha9: '1.0'
-    autoscale: 'False'
+    autoscale: 'True'
     axislabels: 'True'
     color1: blue
     color10: dark blue
