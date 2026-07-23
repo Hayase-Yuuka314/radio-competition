@@ -74,10 +74,10 @@ class sta(gr.top_block, Qt.QWidget):
         self.rf_bandwidth_hz = rf_bandwidth_hz = 800000
         self.output_text_path = output_text_path = 'received_text.txt'
         self.output_status_path = output_status_path = 'rx_status.json'
-        self.message = message = list(bytearray(open("E:/gnu_tset/pas.txt", "r").read().encode('utf-8')))
+        self.message = message = list(bytearray(open("E:/gnu_tset/bao/3.txt", "r").read().encode('utf-8')))
         self.gap_samples = gap_samples = 20000
         self.device_uri_0 = device_uri_0 = 'ip:192.168.2.1'
-        self.device_uri = device_uri = 'usb:1.5.5'
+        self.device_uri = device_uri = 'usb:1.8.5'
         self.deviation_hz_0 = deviation_hz_0 = 75000.0
         self.deviation_hz = deviation_hz = 75000.0
         self.center_frequency_hz_0 = center_frequency_hz_0 = 2400000000

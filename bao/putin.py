@@ -1,5 +1,6 @@
 import time
 import subprocess
+import sys
 
 RUN_TIME = 270      # 4分30秒
 BLOCK_SIZE = 10
@@ -32,7 +33,10 @@ while time.time() - start_time < RUN_TIME:
     print("发送：", output)
 
     # 启动 sta.py
-    proc = subprocess.Popen(["python", "sta.py"])
+    proc = subprocess.Popen([
+    r"E:\rdcd\envs\gnuradio\python.exe",
+    "sta.py"
+])
 
     try:
         remaining = RUN_TIME - (time.time() - start_time)
@@ -45,6 +49,7 @@ while time.time() - start_time < RUN_TIME:
                 proc.wait(timeout=3)
             except subprocess.TimeoutExpired:
                 proc.kill()
+                # time.sleep(1000)
 
     # 更新位置和组号
     index += BLOCK_SIZE

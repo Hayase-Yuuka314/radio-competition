@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 import subprocess
@@ -11,46 +12,34 @@ start_time = time.time()
 
 while time.time() - start_time < RUN_TIME:
 
-    # 启动 final.py
-    proc = subprocess.Popen(["python", "final.py"])
+    # 启动 final.py（保持原路径）
+    proc = subprocess.Popen([r"D:\radioconda\envs\gnuradio\python.exe", "final.py"])
 
     try:
-        while time.time() - start_time < RUN_TIME:
+        # 固定等待1秒
+        remaining = RUN_TIME - (time.time() - start_time)
+        time.sleep(min(1.0, remaining))
 
-            if os.path.exists("1.txt"):
-
-                # 等待文件写完
-                while True:
-                    try:
-                        with open("1.txt", "r", encoding="utf-8") as f:
-                            data = f.read()
-                        break
-                    except PermissionError:
-                        time.sleep(0.01)
+        # 如果1.txt存在，则读取
+        if os.path.exists("1.txt"):
+            try:
+                with open("1.txt", "r", encoding="utf-8") as f:
+                    data = f.read()
 
                 s += data
 
-                os.remove("1.txt")
-
                 print(f"收到一次数据，长度 {len(data)}")
 
-                # 收到一次数据立即结束本次final.py
-                if proc.poll() is None:
-                    proc.terminate()
+                os.remove("1.txt")
 
-                    try:
-                        proc.wait(timeout=3)
-                    except subprocess.TimeoutExpired:
-                        proc.kill()
-
-                # 开始下一轮
-                break
-
-            time.sleep(CHECK_INTERVAL)
+            except Exception as e:
+                print("读取1.txt失败：", e)
 
     finally:
+        # 结束 final.py 
         if proc.poll() is None:
             proc.terminate()
+
             try:
                 proc.wait(timeout=3)
             except subprocess.TimeoutExpired:

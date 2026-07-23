@@ -122,7 +122,7 @@ blocks:
   id: variable
   parameters:
     comment: "\u7528 iio_info -S \u67E5\u5230\u7684 TX Pluto URI"
-    value: '''usb:1.5.5'''
+    value: '''usb:1.8.5'''
   states:
     bus_sink: false
     bus_source: false
@@ -160,7 +160,7 @@ blocks:
   parameters:
     comment: "\u8981\u53D1\u9001\u7684 UTF-8 \u6587\u672C\uFF0C\u6700\u591A 64 \u5B57\
       \u8282"
-    value: list(bytearray(open("E:/gnu_tset/pas.txt", "r").read().encode('utf-8')))
+    value: list(bytearray(open("E:/gnu_tset/bao/3.txt", "r").read().encode('utf-8')))
   states:
     bus_sink: false
     bus_source: false
