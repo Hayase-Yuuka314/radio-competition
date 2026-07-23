@@ -456,11 +456,11 @@ def _find_rising_edges(samples: np.ndarray, config: ContestConfig) -> list[int]:
         return []
     width = 128
     smooth = np.convolve(power, np.ones(width)/width, mode="same")
-    low = float(np.percentile(smooth, 10.0))
-    high = float(np.percentile(smooth, 90.0))
-    if not np.isfinite(high) or high <= low * 1.02 + 1e-12:
+    # Use absolute threshold: 25% of max smoothed power
+    max_pwr = float(np.max(smooth))
+    if max_pwr < 1e-12:
         return []
-    threshold = low + 0.25 * (high - low)
+    threshold = max_pwr * 0.25
     active = smooth > threshold
     raw_edges = np.flatnonzero(active[1:] & ~active[:-1]) + 1
     edges: list[int] = []
